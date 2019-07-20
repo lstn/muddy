@@ -69,10 +69,20 @@ def make_acldns_match(domain, direction):
 def make_controller_match(url):
     if not (re.match(HTTP_URL_REGEX, url) or re.match(URN_URL_REGEX, url)):
         raise InputException('Not a valid URL: {}' % url)
+    
     return {'controller', url}
 
 def make_my_controller_match():
     return {'my-controller', [None]}
+
+def make_manufacturer_match(domain):
+    if not re.match(DOMAIN_NAME_REGEX, domain):
+        raise InputException("Not a domain name: {domain}")
+    
+    return {'manufacturer': domain}
+
+def make_same_manufacturer_match():
+    return {'same-manufacturer', [None]}
     
 
 def make_sub_ace(sub_ace_name, protocol_direction, target_url, protocol, local_port, remote_port, match_type,
@@ -88,15 +98,12 @@ def make_sub_ace(sub_ace_name, protocol_direction, target_url, protocol, local_p
     cloud_ipv4_entry = make_acldns_match(target_url, protocol_direction) if match_type is MatchType.IS_CLOUD else None
     match['ietf-mud:mud'] = make_controller_match(target_url) if match_type is MatchType.IS_CONTROLLER else None
     match['ietf-mud:mud'] = make_my_controller_match(target_url) if match_type is MatchType.IS_MY_CONTROLLER else None
-
-    if match_type is MatchType.IS_MFG:
-        if not re.match(DOMAIN_NAME_REGEX, target_url):
-            raise InputException('Not a domain name: {}' % target_url)
-        match['ietf-mud:mud'] = {'manufacturer': target_url}
-    elif match_type is MatchType.IS_MYMFG:
-        match['ietf-mud:mud'] = {'same-manufacturer': [None]}
-    else:
-        raise InputException('match_type is not valid: ' % match_type)
+    match['ietf-mud:mud'] = make_manufacturer_match(target_url) if match_type is MatchType.IS_MFG else None
+    match['ietf-mud:mud'] = make_same_manufacturer_match(target_url) if match_type is MatchType.IS_MYMFG else None
+    
+    if match['ietf-mud:mud'] is None:
+        raise InputException(f"match_type is not valid: {match_type}")
+    
     if protocol is Protocol.ANY and cloud_ipv4_entry:
         match['ipv4'] = cloud_ipv4_entry
     else:
