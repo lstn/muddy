@@ -1,41 +1,11 @@
 from pprint import pprint
 from datetime import datetime
-from enum import Enum, auto
 import re
 
-DOMAIN_NAME_REGEX = r'[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}$'
-HTTP_URL_REGEX = r'/^(http|https):\\/\\/[a-zA-Z0-9_]+([\\-\\.]{1}[a-zA-Z_0-9]+)*\\.[_a-zA-Z]{2,5}((:[0-9]{1,5})?\\/.*)?$/i'
-URN_URL_REGEX = '^urn:[a-zA-Z0-9][a-zA-Z0-9-]{0,31}:[a-zA-Z0-9()+,\-.:=@;$_!*\'%/?#]+$^'
+from muddy.constants import DOMAIN_NAME_REGEX, HTTP_URL_REGEX, URN_URL_REGEX
+from muddy.exceptions import InputException
+from muddy.models import MatchType, IPVersion, Protocol, Direction
 
-
-class InputError(Exception):
-    pass
-
-
-class MatchType(Enum):
-    IS_LOCAL = auto()
-    IS_MFG = auto()
-    IS_CONTROLLER = auto()
-    IS_CLOUD = auto()
-    IS_MY_CONTROLLER = auto()
-    IS_MYMFG = auto()
-
-
-class IpVersions(Enum):
-    IPV4 = auto()
-    IPV6 = auto()
-    BOTH = auto()
-
-
-class Protocols(Enum):
-    TCP = auto()
-    UDP = auto()
-    ANY = auto()
-
-
-class Directions(Enum):
-    TO_DEVICE = auto()
-    FROM_DEVICE = auto()
 
 
 def make_support_info(mud_version, mud_url, last_update, cache_validity,
@@ -80,54 +50,60 @@ def make_port_range(dir_init, source_port, destination_port):
 
     return port_range
 
+def make_acldns_match(domain, direction):
+    acldns_match = {}
+
+    if not re.match(DOMAIN_NAME_REGEX, domain):
+        raise InputException(f"Not a domain name: {domain}")
+    key = "ietf-acldns:src-dnsname" if direction is Direction.TO_DEVICE else \
+             "ietf-acldns:dst-dnsname" if direction is Direction.FROM_DEVICE
+    if key:
+        acldns_match[key] = domain
+    else:
+        raise InputException(f"direction is not valid: {direction}")
+
 
 def make_sub_ace(ace_name, protocol_direction, target_url, protocol, local_port, remote_port, match_type,
                  direction_initiated):
     match = {}
     if len(target_url) > 140:
-        raise InputError('target url is to long: {}' % target_url)
+        raise InputException('target url is to long: {}' % target_url)
     cloud_ipv4_entry = None
     source_port = None
     destination_port = None
-    if match_type is MatchType.IS_CLOUD:
-        if not re.match(DOMAIN_NAME_REGEX, target_url):
-            raise InputError('Not a domain name: {}' % target_url)
-        if protocol_direction is Directions.TO_DEVICE:
-            cloud_ipv4_entry = {'ietf-acldns:src-dnsname': target_url}
-        elif protocol_direction is Directions.FROM_DEVICE:
-            cloud_ipv4_entry = {'ietf-acldns:dst-dnsname': target_url}
-        else:
-            raise InputError('initiation_direction is not valid: {}' % protocol_direction)
+
+    make_acldns_match(target_url, protocol_direction) if match_type is MatchType.IS_CLOUD
+
     elif match_type is MatchType.IS_CONTROLLER:
         if not (re.match(HTTP_URL_REGEX, target_url) or re.match(URN_URL_REGEX, target_url)):
-            raise InputError('Not a valid URL: {}' % target_url)
+            raise InputException('Not a valid URL: {}' % target_url)
         match['ietf-mud:mud'] = {'controller': target_url}
     elif match_type is MatchType.IS_MY_CONTROLLER:
         match['ietf-mud:mud'] = {'my-controller': [None]}
     elif match_type is MatchType.IS_MFG:
         if not re.match(DOMAIN_NAME_REGEX, target_url):
-            raise InputError('Not a domain name: {}' % target_url)
+            raise InputException('Not a domain name: {}' % target_url)
         match['ietf-mud:mud'] = {'manufacturer': target_url}
     elif match_type is MatchType.IS_MYMFG:
         match['ietf-mud:mud'] = {'same-manufacturer': [None]}
     else:
-        raise InputError('match_type is not valid: ' % match_type)
-    if protocol is Protocols.ANY and cloud_ipv4_entry:
+        raise InputException('match_type is not valid: ' % match_type)
+    if protocol is Protocol.ANY and cloud_ipv4_entry:
         match['ipv4'] = cloud_ipv4_entry
     else:
-        if protocol_direction is Directions.TO_DEVICE:
+        if protocol_direction is Direction.TO_DEVICE:
             source_port = remote_port
             destination_port = local_port
-        elif protocol_direction is Directions.FROM_DEVICE:
+        elif protocol_direction is Direction.FROM_DEVICE:
             source_port = local_port
             destination_port = remote_port
-        if protocol is Protocols.TCP:
+        if protocol is Protocol.TCP:
             match['ipv4'] = {'protocol': 6}
             match['tcp'] = make_port_range(direction_initiated, source_port, destination_port)
-        elif protocol is Protocols.UDP:
+        elif protocol is Protocol.UDP:
             match['ipv4'] = {'protocol': 17}
         else:
-            raise InputError('protocol is not valid: {}' % protocol)
+            raise InputException('protocol is not valid: {}' % protocol)
         if cloud_ipv4_entry:
             match['ipv4'].update(cloud_ipv4_entry)
     return {'name': ace_name, 'matches': match}
@@ -138,5 +114,5 @@ if __name__ == '__main__':
     pprint(make_support_info(1, 'https://test/123', None, 48, True, None, 'aa', None, 'https://doc.ca', '123'))
     pprint(make_port_range('to-device', 888, 80))
     pprint(
-        make_sub_ace('ace', Directions.TO_DEVICE, 'www.google.com', Protocols.UDP, 888, 80, MatchType.IS_CLOUD,
+        make_sub_ace('ace', Direction.TO_DEVICE, 'www.google.com', Protocol.UDP, 888, 80, MatchType.IS_CLOUD,
                      'to-device'))

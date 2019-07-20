@@ -8,7 +8,7 @@ def cli():
 @cli.command()
 @click.option('--mud-version', '-v', required=True, default=1, help=MUD_MODEL_DEF["mud-version"], show_default=True)
 @click.option('--mud-url', '-u', required=True, help=MUD_MODEL_DEF["mud-url"])
-@click.option('--is-supported', '-s', required=True, type=click.BOOL, default=True, help=MUD_MODEL_DEF["is-supported"], show_default=True)
+@click.option('+supported/-supported', required=True, default=True, help=MUD_MODEL_DEF["is-supported"], show_default=True)
 @click.option('--cache-validity', default=48, help=MUD_MODEL_DEF["cache-validity"], show_default=True)
 @click.option('--systeminfo', help=MUD_MODEL_DEF["systeminfo"])
 @click.option('--documentation', help=MUD_MODEL_DEF["documentation"])
@@ -17,7 +17,11 @@ def cli():
 @click.option('--firmware-rev', help=MUD_MODEL_DEF["firmware-rev"])
 @click.option('--software-rev', help=MUD_MODEL_DEF["software-rev"])
 @click.option('--extensions', help=MUD_MODEL_DEF["extensions"])
-def make(mud_version, mud_url, cache_validity, is_supported, systeminfo,
+@click.option('+ipv4/-ipv4', required=True, help="Does this device speak IPv4?")
+@click.option('+ipv6/-ipv6', required=True, help="Does this device speak IPv6?")
+@click.option('--acldns', type=(str, str, str, str), help="DNS ACL")
+def make(mud_version, mud_url, cache_validity, supported, systeminfo,
         mfg_name, documentation, model_name, firmware_rev, software_rev,
-        extensions):
+        extensions, ipv4, ipv6, acldns):
     click.echo('make mud file')
+    click.echo(acldns)
