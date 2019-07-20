@@ -15,3 +15,7 @@ MUD_MODEL_DEF = {
     "documentation": "This URI consists of a URL that points to documentation relating to the device and the MUD file.",
     "extensions": "A list of extension names that are used in this MUD file.  Each name is registered with the IANA and described in an RFC."
 }
+
+DOMAIN_NAME_REGEX = r'[a-zA-Z0-9.-]+\.[a-zA-Z]{2,3}$'
+HTTP_URL_REGEX = r'/^(http|https):\\/\\/[a-zA-Z0-9_]+([\\-\\.]{1}[a-zA-Z_0-9]+)*\\.[_a-zA-Z]{2,5}((:[0-9]{1,5})?\\/.*)?$/i'
+URN_URL_REGEX = '^urn:[a-zA-Z0-9][a-zA-Z0-9-]{0,31}:[a-zA-Z0-9()+,\-.:=@;$_!*\'%/?#]+$^'
