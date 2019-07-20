@@ -5,6 +5,7 @@ import re
 from muddy.constants import DOMAIN_NAME_REGEX, HTTP_URL_REGEX, URN_URL_REGEX
 from muddy.exceptions import InputException
 from muddy.models import MatchType, IPVersion, Protocol, Direction
+from muddy.utils import get_ipversion_string
 
 
 
@@ -51,12 +52,13 @@ def make_port_range(dir_init, source_port, destination_port):
     return port_range
 
 def make_acldns_match(domain, direction):
-    acldns_match = {}
-
     if not re.match(DOMAIN_NAME_REGEX, domain):
         raise InputException(f"Not a domain name: {domain}")
+
+    acldns_match = {}
     key = "ietf-acldns:src-dnsname" if direction is Direction.TO_DEVICE else \
              "ietf-acldns:dst-dnsname" if direction is Direction.FROM_DEVICE else None
+
     if key:
         acldns_match[key] = domain
     else:
@@ -64,34 +66,30 @@ def make_acldns_match(domain, direction):
     
     return acldns_match
 
-def make_controller_match():
-    pass
+def make_controller_match(url):
+    if not (re.match(HTTP_URL_REGEX, url) or re.match(URN_URL_REGEX, url)):
+        raise InputException('Not a valid URL: {}' % url)
+    return {'controller', url}
 
+def make_my_controller_match():
+    return {'my-controller', [None]}
+    
 
 def make_sub_ace(sub_ace_name, protocol_direction, target_url, protocol, local_port, remote_port, match_type,
                  direction_initiated, ip_version):
-    if ip_version is IPVersion.IPV4:
-        ip_version = 'ipv4'
-    elif ip_version is IPVersion.IPV6:
-        ip_version = 'ipv6'
-    else:
-        raise InputException('initiation_direction is not valid: {}' % protocol_direction)
-    match = {}
     if len(target_url) > 140:
         raise InputException('target url is to long: {}' % target_url)
+    match = {}
     
+    ip_version = get_ipversion_string(ip_version)
     source_port = None
     destination_port = None
 
     cloud_ipv4_entry = make_acldns_match(target_url, protocol_direction) if match_type is MatchType.IS_CLOUD else None
+    match['ietf-mud:mud'] = make_controller_match(target_url) if match_type is MatchType.IS_CONTROLLER else None
+    match['ietf-mud:mud'] = make_my_controller_match(target_url) if match_type is MatchType.IS_MY_CONTROLLER else None
 
-    if match_type is MatchType.IS_CONTROLLER:
-        if not (re.match(HTTP_URL_REGEX, target_url) or re.match(URN_URL_REGEX, target_url)):
-            raise InputException('Not a valid URL: {}' % target_url)
-        match['ietf-mud:mud'] = {'controller': target_url}
-    elif match_type is MatchType.IS_MY_CONTROLLER:
-        match['ietf-mud:mud'] = {'my-controller': [None]}
-    elif match_type is MatchType.IS_MFG:
+    if match_type is MatchType.IS_MFG:
         if not re.match(DOMAIN_NAME_REGEX, target_url):
             raise InputException('Not a domain name: {}' % target_url)
         match['ietf-mud:mud'] = {'manufacturer': target_url}
