@@ -164,10 +164,10 @@ def make_acl(ip_version, protocol_direction, target_url, protocol, local_ports, 
         acl_type_prefix = 'ipv6'
     else:
         raise InputException(f'ip_version is not valid: {ip_version}')
-    if acl_name is None and mud_name:
-        acl_name = make_acl_name(mud_name, ip_version, protocol_direction)
-    elif acl_name is None and mud_name is None:
+    if acl_name is None and mud_name is None:
         raise InputException('acl_name and mud_name can\'t both by None at the same time')
+    elif acl_name is None:
+        acl_name = make_acl_name(mud_name, ip_version, protocol_direction)
     return {'name': acl_name, 'type': acl_type_prefix,
             'aces': {'ace': [make_ace(protocol_direction, target_url, protocol, local_ports, remote_ports, match_type,
                                       direction_initiateds, ip_version)]}}
@@ -188,6 +188,15 @@ def make_acl_name(mud_name, ip_version, protocol_direction):
         raise InputException(f'protocol_direction is not valid: {protocol_direction}')
     return mud_name + acl_name_suffix_ip_version + acl_name_suffix_protocol_direction
 
+
+def make_policy(protocol_direction, acl_names, ip_version=None):
+    if protocol_direction is Direction.TO_DEVICE:
+        policy_type_prefix = 'to'
+    elif protocol_direction is Direction.FROM_DEVICE:
+        policy_type_prefix = 'from'
+    else:
+        raise InputException(f'ip_version is not valid: {ip_version}')
+    return {f'{policy_type_prefix}-device-policy':{'access-lists': {'access-list': acl_names}}}
 
 
 if __name__ == '__main__':
