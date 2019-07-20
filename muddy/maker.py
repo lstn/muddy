@@ -157,13 +157,25 @@ def make_ace(protocol_direction, target_url, protocol, local_ports, remote_ports
 
 
 def make_acl(mud_name, ip_version, protocol_direction, target_url, protocol, local_ports, remote_ports, match_type,
-             direction_initiateds):
+             direction_initiateds, acl_name=None):
     if ip_version is IPVersion.IPV4:
-        acl_name_suffix_ip_version = '-v4'
         acl_type_prefix = 'ipv4'
     elif ip_version is IPVersion.IPV6:
-        acl_name_suffix_ip_version = '-v6'
         acl_type_prefix = 'ipv6'
+    else:
+        raise InputException(f'ip_version is not valid: {ip_version}')
+    if acl_name is None:
+        acl_name = make_acl_name(mud_name, ip_version, protocol_direction)
+    return {'name': acl_name, 'type': acl_type_prefix,
+            'aces': {'ace': [make_ace(protocol_direction, target_url, protocol, local_ports, remote_ports, match_type,
+                                      direction_initiateds, ip_version)]}}
+
+
+def make_acl_name(mud_name, ip_version, protocol_direction):
+    if ip_version is IPVersion.IPV4:
+        acl_name_suffix_ip_version = '-v4'
+    elif ip_version is IPVersion.IPV6:
+        acl_name_suffix_ip_version = '-v6'
     else:
         raise InputException(f'ip_version is not valid: {ip_version}')
     if protocol_direction is Direction.TO_DEVICE:
@@ -172,9 +184,7 @@ def make_acl(mud_name, ip_version, protocol_direction, target_url, protocol, loc
         acl_name_suffix_protocol_direction = 'fr'
     else:
         raise InputException(f'protocol_direction is not valid: {protocol_direction}')
-    return {'name': mud_name + acl_name_suffix_ip_version + acl_name_suffix_protocol_direction, 'type': acl_type_prefix,
-            'aces': {'ace': [make_ace(protocol_direction, target_url, protocol, local_ports, remote_ports, match_type,
-                                      direction_initiateds, ip_version)]}}
+    return mud_name + acl_name_suffix_ip_version + acl_name_suffix_protocol_direction
 
 
 if __name__ == '__main__':
