@@ -16,7 +16,7 @@ def make_support_info(mud_version, mud_url, last_update, cache_validity,
     support_info["mud-url"] = mud_url
     support_info["last-update"] = last_update if last_update is not None else datetime.now().strftime('%Y-%m-%dT%H:%M:%S%z')
     support_info["cache-validity"] = int(cache_validity)
-    support_info["is-supported"] = True
+    support_info["is-supported"] = is_supported
     support_info["systeminfo"] = system_info
     support_info["documentation"] = documentation
 
