@@ -37,8 +37,10 @@ def make_support_info(mud_version, mud_url, last_update, cache_validity,
 def make_port_range(dir_init, source_port, destination_port):
     port_range = {}
 
-    if dir_init is not None and dir_init in ['to-device', 'from-device']:
-        port_range['ietf-mud:direction-initiated'] = dir_init
+    if dir_init is not None and dir_init is Direction.TO_DEVICE:
+        port_range['ietf-mud:direction-initiated'] = "to-device"
+    if dir_init is not None and dir_init is Direction.FROM_DEVICE:
+        port_range['ietf-mud:direction-initiated'] = "from-device"
 
     if source_port is not None:
         port_range['source-port'] = {
