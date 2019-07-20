@@ -1,4 +1,4 @@
-from muddy.models import IPVersion
+from muddy.models import IPVersion, Direction
 from muddy.exceptions import InputException
 
 def get_ipversion_string(ip_version):
@@ -8,3 +8,9 @@ def get_ipversion_string(ip_version):
         return 'ipv6'
     
     raise InputException('ip_version is not valid: {ip_version}')
+
+def get_sub_ace_name(ace_name, direction):
+    if direction is Direction.TO_DEVICE:
+        return f"{ace_name}{'{}'}-todev"
+    if direction is Direction.FROM_DEVICE:
+        return f"{ace_name}{'{}'}-frdev"

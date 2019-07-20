@@ -1,5 +1,7 @@
 import click
 from muddy.constants import MUD_MODEL_DEF
+from muddy.models import IPVersion, Direction
+from muddy.utils import get_sub_ace_name
 
 @click.group()
 def cli():
@@ -25,3 +27,4 @@ def make(mud_version, mud_url, cache_validity, supported, systeminfo,
         extensions, ipv4, ipv6, acldns):
     click.echo('make mud file')
     click.echo(acldns)
+    click.echo(get_sub_ace_name("test", Direction.FROM_DEVICE))

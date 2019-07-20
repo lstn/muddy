@@ -5,7 +5,7 @@ import re
 from muddy.constants import DOMAIN_NAME_REGEX, HTTP_URL_REGEX, URN_URL_REGEX
 from muddy.exceptions import InputException
 from muddy.models import MatchType, IPVersion, Protocol, Direction
-from muddy.utils import get_ipversion_string
+from muddy.utils import get_ipversion_string, get_sub_ace_name
 
 
 
@@ -56,8 +56,7 @@ def make_acldns_match(domain, direction):
         raise InputException(f"Not a domain name: {domain}")
 
     acldns_match = {}
-    key = "ietf-acldns:src-dnsname" if direction is Direction.TO_DEVICE else \
-             "ietf-acldns:dst-dnsname" if direction is Direction.FROM_DEVICE else None
+    key = "ietf-acldns:src-dnsname" if direction is Direction.TO_DEVICE else "ietf-acldns:dst-dnsname" if direction is Direction.FROM_DEVICE else None
 
     if key:
         acldns_match[key] = domain
@@ -127,16 +126,16 @@ def make_sub_ace(sub_ace_name, protocol_direction, target_url, protocol, local_p
 
 def make_ace(ace_name, protocol_direction, target_url, protocol, local_ports, remote_ports, match_type,
              direction_initiateds, ip_version):
-    if protocol_direction is Direction.TO_DEVICE:
-        sub_ace_name = ace_name + '{}-todev'
-    else:
-        sub_ace_name = ace_name + '{}-frdev'
     ace = []
+    sub_ace_name = get_sub_ace_name(ace_name, protocol_direction)
+
     for i in range(len(protocol)):
         ace.append(
-            make_sub_ace(sub_ace_name.format(i), protocol_direction[i], target_url, protocol, local_ports[i],
-                         remote_ports[i],
-                         match_type, direction_initiateds, ip_version))
+            make_sub_ace(
+                sub_ace_name.format(i), protocol_direction[i], target_url, protocol, local_ports[i],
+                remote_ports[i], match_type, direction_initiateds, ip_version
+            )
+        )
 
 
 if __name__ == '__main__':
