@@ -156,16 +156,18 @@ def make_ace(protocol_direction, target_url, protocol, local_ports, remote_ports
     return ace
 
 
-def make_acl(mud_name, ip_version, protocol_direction, target_url, protocol, local_ports, remote_ports, match_type,
-             direction_initiateds, acl_name=None):
+def make_acl(ip_version, protocol_direction, target_url, protocol, local_ports, remote_ports, match_type,
+             direction_initiateds, acl_name=None, mud_name=None):
     if ip_version is IPVersion.IPV4:
         acl_type_prefix = 'ipv4'
     elif ip_version is IPVersion.IPV6:
         acl_type_prefix = 'ipv6'
     else:
         raise InputException(f'ip_version is not valid: {ip_version}')
-    if acl_name is None:
+    if acl_name is None and mud_name:
         acl_name = make_acl_name(mud_name, ip_version, protocol_direction)
+    elif acl_name is None and mud_name is None:
+        raise InputException('acl_name and mud_name can\'t both by None at the same time')
     return {'name': acl_name, 'type': acl_type_prefix,
             'aces': {'ace': [make_ace(protocol_direction, target_url, protocol, local_ports, remote_ports, match_type,
                                       direction_initiateds, ip_version)]}}
@@ -185,6 +187,7 @@ def make_acl_name(mud_name, ip_version, protocol_direction):
     else:
         raise InputException(f'protocol_direction is not valid: {protocol_direction}')
     return mud_name + acl_name_suffix_ip_version + acl_name_suffix_protocol_direction
+
 
 
 if __name__ == '__main__':
