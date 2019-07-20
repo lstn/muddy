@@ -97,9 +97,9 @@ def make_sub_ace(sub_ace_name, protocol_direction, target_url, protocol, local_p
 
     cloud_ipv4_entry = make_acldns_match(target_url, protocol_direction) if match_type is MatchType.IS_CLOUD else None
     match['ietf-mud:mud'] = make_controller_match(target_url) if match_type is MatchType.IS_CONTROLLER else None
-    match['ietf-mud:mud'] = make_my_controller_match(target_url) if match_type is MatchType.IS_MY_CONTROLLER else None
+    match['ietf-mud:mud'] = make_my_controller_match() if match_type is MatchType.IS_MY_CONTROLLER else None
     match['ietf-mud:mud'] = make_manufacturer_match(target_url) if match_type is MatchType.IS_MFG else None
-    match['ietf-mud:mud'] = make_same_manufacturer_match(target_url) if match_type is MatchType.IS_MYMFG else None
+    match['ietf-mud:mud'] = make_same_manufacturer_match() if match_type is MatchType.IS_MYMFG else None
     
     if match['ietf-mud:mud'] is None:
         raise InputException(f"match_type is not valid: {match_type}")
@@ -125,16 +125,16 @@ def make_sub_ace(sub_ace_name, protocol_direction, target_url, protocol, local_p
     return {'name': sub_ace_name, 'matches': match}
 
 
-def make_ace(ace_name, protocol_Direction, target_url, protocol, local_ports, remote_ports, match_type,
+def make_ace(ace_name, protocol_direction, target_url, protocol, local_ports, remote_ports, match_type,
              direction_initiateds, ip_version):
-    if protocol_Direction is Direction.TO_DEVICE:
+    if protocol_direction is Direction.TO_DEVICE:
         sub_ace_name = ace_name + '{}-todev'
     else:
         sub_ace_name = ace_name + '{}-frdev'
     ace = []
     for i in range(len(protocol)):
         ace.append(
-            make_sub_ace(sub_ace_name.format(i), protocol_Direction[i], target_url, protocol, local_ports[i],
+            make_sub_ace(sub_ace_name.format(i), protocol_direction[i], target_url, protocol, local_ports[i],
                          remote_ports[i],
                          match_type, direction_initiateds, ip_version))
 

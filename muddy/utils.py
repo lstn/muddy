@@ -1,6 +1,7 @@
 from muddy.models import IPVersion
+from muddy.exceptions import InputException
 
-def get_ipversion_string(ip_version)
+def get_ipversion_string(ip_version):
     if ip_version is IPVersion.IPV4:
         return 'ipv4'
     if ip_version is IPVersion.IPV6:
