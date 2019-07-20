@@ -63,8 +63,14 @@ def make_acldns_match(domain, direction):
         raise InputException(f"direction is not valid: {direction}")
 
 
-def make_sub_ace(ace_name, protocol_direction, target_url, protocol, local_port, remote_port, match_type,
-                 direction_initiated):
+def make_sub_ace(sub_ace_name, protocol_direction, target_url, protocol, local_port, remote_port, match_type,
+                 direction_initiated, ip_version):
+    if ip_version is IPVersion.IPV4:
+        ip_version = 'ipv4'
+    elif ip_version is IPVersion.IPV6:
+        ip_version = 'ipv6'
+    else:
+        raise InputException('initiation_direction is not valid: {}' % protocol_direction)
     match = {}
     if len(target_url) > 140:
         raise InputException('target url is to long: {}' % target_url)
@@ -87,8 +93,8 @@ def make_sub_ace(ace_name, protocol_direction, target_url, protocol, local_port,
     elif match_type is MatchType.IS_MYMFG:
         match['ietf-mud:mud'] = {'same-manufacturer': [None]}
     else:
-        raise InputException('match_type is not valid: ' % match_type)
-    if protocol is Protocol.ANY and cloud_ipv4_entry:
+        raise InputError('match_type is not valid: ' % match_type)
+    if protocol is Protocols.ANY and cloud_ipv4_entry:
         match['ipv4'] = cloud_ipv4_entry
     else:
         if protocol_direction is Direction.TO_DEVICE:
@@ -97,16 +103,30 @@ def make_sub_ace(ace_name, protocol_direction, target_url, protocol, local_port,
         elif protocol_direction is Direction.FROM_DEVICE:
             source_port = local_port
             destination_port = remote_port
-        if protocol is Protocol.TCP:
+        if protocol is Protocols.TCP:
             match['ipv4'] = {'protocol': 6}
             match['tcp'] = make_port_range(direction_initiated, source_port, destination_port)
-        elif protocol is Protocol.UDP:
+        elif protocol is Protocols.UDP:
             match['ipv4'] = {'protocol': 17}
         else:
             raise InputException('protocol is not valid: {}' % protocol)
         if cloud_ipv4_entry:
-            match['ipv4'].update(cloud_ipv4_entry)
-    return {'name': ace_name, 'matches': match}
+            match[ip_version].update(cloud_ipv4_entry)
+    return {'name': sub_ace_name, 'matches': match}
+
+
+def make_ace(ace_name, protocol_directions, target_url, protocol, local_ports, remote_ports, match_type,
+             direction_initiateds, ip_version):
+    if protocol_directions is Directions.TO_DEVICE:
+        sub_ace_name = ace_name + '{}-todev'
+    else:
+        sub_ace_name = ace_name + '{}-frdev'
+    ace = []
+    for i in range(len(protocol)):
+        ace.append(
+            make_sub_ace(sub_ace_name.format(i), protocol_directions[i], target_url, protocol, local_ports[i],
+                         remote_ports[i],
+                         match_type, direction_initiateds, ip_version))
 
 
 if __name__ == '__main__':
@@ -114,5 +134,5 @@ if __name__ == '__main__':
     pprint(make_support_info(1, 'https://test/123', None, 48, True, None, 'aa', None, 'https://doc.ca', '123'))
     pprint(make_port_range('to-device', 888, 80))
     pprint(
-        make_sub_ace('ace', Direction.TO_DEVICE, 'www.google.com', Protocol.UDP, 888, 80, MatchType.IS_CLOUD,
+        make_sub_ace('ace', Directions.TO_DEVICE, 'www.google.com', Protocols.UDP, 888, 80, MatchType.IS_CLOUD,
                      'to-device'))
