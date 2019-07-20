@@ -81,8 +81,14 @@ def make_port_range(dir_init, source_port, destination_port):
     return port_range
 
 
-def make_sub_ace(ace_name, protocol_direction, target_url, protocol, local_port, remote_port, match_type,
-                 direction_initiated):
+def make_sub_ace(sub_ace_name, protocol_direction, target_url, protocol, local_port, remote_port, match_type,
+                 direction_initiated, ip_version):
+    if ip_version is IpVersions.IPV4:
+        ip_version = 'ipv4'
+    elif ip_version is IpVersions.IPV6:
+        ip_version = 'ipv6'
+    else:
+        raise InputError('initiation_direction is not valid: {}' % protocol_direction)
     match = {}
     if len(target_url) > 140:
         raise InputError('target url is to long: {}' % target_url)
@@ -113,7 +119,7 @@ def make_sub_ace(ace_name, protocol_direction, target_url, protocol, local_port,
     else:
         raise InputError('match_type is not valid: ' % match_type)
     if protocol is Protocols.ANY and cloud_ipv4_entry:
-        match['ipv4'] = cloud_ipv4_entry
+        match[ip_version] = cloud_ipv4_entry
     else:
         if protocol_direction is Directions.TO_DEVICE:
             source_port = remote_port
@@ -122,15 +128,29 @@ def make_sub_ace(ace_name, protocol_direction, target_url, protocol, local_port,
             source_port = local_port
             destination_port = remote_port
         if protocol is Protocols.TCP:
-            match['ipv4'] = {'protocol': 6}
+            match[ip_version] = {'protocol': 6}
             match['tcp'] = make_port_range(direction_initiated, source_port, destination_port)
         elif protocol is Protocols.UDP:
-            match['ipv4'] = {'protocol': 17}
+            match[ip_version] = {'protocol': 17}
         else:
             raise InputError('protocol is not valid: {}' % protocol)
         if cloud_ipv4_entry:
-            match['ipv4'].update(cloud_ipv4_entry)
-    return {'name': ace_name, 'matches': match}
+            match[ip_version].update(cloud_ipv4_entry)
+    return {'name': sub_ace_name, 'matches': match}
+
+
+def make_ace(ace_name, protocol_directions, target_url, protocol, local_ports, remote_ports, match_type,
+             direction_initiateds, ip_version):
+    if protocol_directions is Directions.TO_DEVICE:
+        sub_ace_name = ace_name + '{}-todev'
+    else:
+        sub_ace_name = ace_name + '{}-frdev'
+    ace = []
+    for i in range(len(protocol)):
+        ace.append(
+            make_sub_ace(sub_ace_name.format(i), protocol_directions[i], target_url, protocol, local_ports[i],
+                         remote_ports[i],
+                         match_type, direction_initiateds, ip_version))
 
 
 if __name__ == '__main__':
@@ -139,4 +159,4 @@ if __name__ == '__main__':
     pprint(make_port_range('to-device', 888, 80))
     pprint(
         make_sub_ace('ace', Directions.TO_DEVICE, 'www.google.com', Protocols.UDP, 888, 80, MatchType.IS_CLOUD,
-                     'to-device'))
+                     'to-device', IpVersions.IPV6))
