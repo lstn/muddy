@@ -7,7 +7,7 @@ from muddy.exceptions import InputException
 from muddy.models import MatchType, IPVersion, Protocol, Direction
 from muddy.utils import (
     get_ipversion_string, get_ipversion_suffix_string, get_sub_ace_name,
-    get_ace_name, get_protocol_direction_suffix_string
+    get_ace_name, get_protocol_direction_suffix_string, get_policy_type_prefix_string
 )
 
 
@@ -169,14 +169,11 @@ def make_acl_name(mud_name, ip_version, protocol_direction):
 
     return f"{mud_name}{acl_name_suffix_ip_version}{acl_name_suffix_protocol_direction}"
 
-def make_policy(protocol_direction, acl_names, ip_version=None):
-    if protocol_direction is Direction.TO_DEVICE:
-        policy_type_prefix = 'to'
-    elif protocol_direction is Direction.FROM_DEVICE:
-        policy_type_prefix = 'from'
-    else:
-        raise InputException(f'ip_version is not valid: {ip_version}')
-    return {f'{policy_type_prefix}-device-policy':{'access-lists': {'access-list': acl_names}}}
+def make_policy(protocol_direction, acl_names):
+    policy_type_prefix = get_policy_type_prefix_string(protocol_direction)
+    return {
+        f"{policy_type_prefix}-device-policy": {'access-lists': {'access-list': acl_names}}
+    }
 
 
 if __name__ == '__main__':

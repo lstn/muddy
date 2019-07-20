@@ -26,6 +26,14 @@ def get_protocol_direction_suffix_string(direction):
 
     raise InputException(f'protocol_direction is not valid: {direction}')
 
+def get_policy_type_prefix_string(direction):
+    if direction is Direction.TO_DEVICE:
+        return 'to'
+    elif direction is Direction.FROM_DEVICE:
+        return 'from'
+
+    raise InputException(f'direction is not valid: {direction}')
+
 def get_ace_name(match_type):
     if match_type is MatchType.IS_CLOUD:
         return 'cl'
