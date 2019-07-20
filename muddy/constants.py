@@ -1,4 +1,3 @@
-
 MUD_MODEL_DEF = {
     "mud-version": "This node specifies the integer version of the MUD specification.",
     "mud-url": "This URL identifies the MUD file.",

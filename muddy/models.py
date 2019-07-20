@@ -1,5 +1,6 @@
 from enum import Enum, auto
 
+
 class MatchType(Enum):
     IS_LOCAL = auto()
     IS_MFG = auto()
