@@ -138,8 +138,8 @@ def make_ace(protocol_direction, target_url, protocol, local_ports, remote_ports
     elif match_type in MatchType.IS_MFG:
         ace_name = 'man'
     elif match_type in MatchType.IS_MY_CONTROLLER:
-    elif match_type in MatchType.IS_CONTROLLER:
         ace_name = 'myctl'
+    elif match_type in MatchType.IS_CONTROLLER:
         ace_name = 'ent'
     else:
         raise InputException(f'match_type is not valid: {match_type}')
