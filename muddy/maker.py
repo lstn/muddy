@@ -5,7 +5,10 @@ import re
 from muddy.constants import DOMAIN_NAME_REGEX, HTTP_URL_REGEX, URN_URL_REGEX
 from muddy.exceptions import InputException
 from muddy.models import MatchType, IPVersion, Protocol, Direction
-from muddy.utils import get_ipversion_string, get_sub_ace_name
+from muddy.utils import (
+    get_ipversion_string, get_ipversion_suffix_string, get_sub_ace_name,
+    get_ace_name, get_protocol_direction_suffix_string
+)
 
 
 def make_support_info(mud_version, mud_url, last_update, cache_validity,
@@ -131,19 +134,8 @@ def make_sub_ace(sub_ace_name, protocol_direction, target_url, protocol, local_p
 
 def make_ace(protocol_direction, target_url, protocol, local_ports, remote_ports, match_type,
              direction_initiateds, ip_version):
-    if match_type in MatchType.IS_CLOUD:
-        ace_name = 'cl'
-    elif match_type in MatchType.IS_MYMFG:
-        ace_name = 'myman'
-    elif match_type in MatchType.IS_MFG:
-        ace_name = 'man'
-    elif match_type in MatchType.IS_MY_CONTROLLER:
-        ace_name = 'myctl'
-    elif match_type in MatchType.IS_CONTROLLER:
-        ace_name = 'ent'
-    else:
-        raise InputException(f'match_type is not valid: {match_type}')
     ace = []
+    ace_name = get_ace_name(match_type)
     sub_ace_name = get_sub_ace_name(ace_name, protocol_direction)
 
     for i in range(len(protocol)):
@@ -158,12 +150,8 @@ def make_ace(protocol_direction, target_url, protocol, local_ports, remote_ports
 
 def make_acl(ip_version, protocol_direction, target_url, protocol, local_ports, remote_ports, match_type,
              direction_initiateds, acl_name=None, mud_name=None):
-    if ip_version is IPVersion.IPV4:
-        acl_type_prefix = 'ipv4'
-    elif ip_version is IPVersion.IPV6:
-        acl_type_prefix = 'ipv6'
-    else:
-        raise InputException(f'ip_version is not valid: {ip_version}')
+    acl_type_prefix = get_ipversion_string(ip_version)
+
     if acl_name is None and mud_name:
         acl_name = make_acl_name(mud_name, ip_version, protocol_direction)
     elif acl_name is None and mud_name is None:
@@ -174,19 +162,10 @@ def make_acl(ip_version, protocol_direction, target_url, protocol, local_ports, 
 
 
 def make_acl_name(mud_name, ip_version, protocol_direction):
-    if ip_version is IPVersion.IPV4:
-        acl_name_suffix_ip_version = '-v4'
-    elif ip_version is IPVersion.IPV6:
-        acl_name_suffix_ip_version = '-v6'
-    else:
-        raise InputException(f'ip_version is not valid: {ip_version}')
-    if protocol_direction is Direction.TO_DEVICE:
-        acl_name_suffix_protocol_direction = 'to'
-    elif protocol_direction is Direction.FROM_DEVICE:
-        acl_name_suffix_protocol_direction = 'fr'
-    else:
-        raise InputException(f'protocol_direction is not valid: {protocol_direction}')
-    return mud_name + acl_name_suffix_ip_version + acl_name_suffix_protocol_direction
+    acl_name_suffix_ip_version = get_ipversion_suffix_string(ip_version)
+    acl_name_suffix_protocol_direction = get_protocol_direction_suffix_string(protocol_direction)
+
+    return f"{mud_name}{acl_name_suffix_ip_version}{acl_name_suffix_protocol_direction}"
 
 
 
