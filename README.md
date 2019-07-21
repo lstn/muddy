@@ -1,6 +1,8 @@
 # muddy
 
-**muddy** is a python package and CLI tool for generating MUD files.
+[![PyPI version](https://badge.fury.io/py/muddy.svg)](https://badge.fury.io/py/muddy)
+
+**muddy** is a python package and CLI tool for generating MUD files ([RFC8520](https://tools.ietf.org/html/rfc8520)).
 
 ## Usage
 
@@ -72,6 +74,8 @@ for direction_initiated in [models.Direction.TO_DEVICE,models.Direction.FROM_DEV
 
 mud = maker.make_mud(support_info, policies, acl)
 ```
+
+To obtain JSON for a MUD object, you may just `json.dumps(mud)`.
 
 ## Example output
 
