@@ -251,15 +251,15 @@ def make_mud(mud_version, mud_url, cache_validity, is_supported, system_info, do
              last_update=None, model_name=None):
     mud_name = f'mud-{random.randint(10000, 99999)}'
     acl = []
-    policys = {}
+    policies = {}
     for direction_initiated in direction_initiateds:
         acl_names = make_acl_names(mud_name, ip_version, direction_initiated)
-        policys.update(make_policy(direction_initiated, acl_names))
+        policies.update(make_policy(direction_initiated, acl_names))
         acl.append(
             make_acls(ip_version, target_url, protocol, local_ports, remote_ports, match_type, direction_initiated,
                       acl_names))
     mud = make_support_info(mud_version, mud_url, cache_validity,
                             is_supported, system_info, documentation, masa_server, mfg_name, last_update,
                             model_name)
-    mud.update(policys)
+    mud.update(policies)
     return {'ietf-mud:mud': mud, 'ietf-access-control-list:acls': {'acl': [acl]}}
