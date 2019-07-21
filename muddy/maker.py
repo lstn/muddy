@@ -328,8 +328,8 @@ def make_mud(mud_version, mud_url, cache_validity, is_supported, system_info, do
 
 
 @make_mud.add
-def make_mud_2(support_info, directions_initiated, ip_version:IPVersion, target_url, protocol, local_ports, remote_ports,
-             match_type):
+def make_mud_2(support_info, directions_initiated, ip_version: IPVersion, target_url, protocol, local_ports,
+               remote_ports, match_type):
     acl = []
     policies = {}
     mud_name = f'mud-{random.randint(10000, 99999)}'
@@ -345,7 +345,7 @@ def make_mud_2(support_info, directions_initiated, ip_version:IPVersion, target_
 
 @make_mud.add
 def make_mud_3(policies, acls, mud_version, mud_url, cache_validity, is_supported, system_info, documentation,
-             masa_server=None, mfg_name=None, last_update=None, model_name=None):
+               masa_server=None, mfg_name=None, last_update=None, model_name=None):
     mud = make_support_info(mud_version, mud_url, cache_validity,
                             is_supported, system_info, documentation, masa_server, mfg_name, last_update,
                             model_name)
