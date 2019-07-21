@@ -12,9 +12,42 @@ from muddy.utils import (
 )
 
 
-def make_support_info(mud_version, mud_url, cache_validity,
-                      is_supported, system_info, documentation, masa_server=None, mfg_name=None, last_update=None,
-                      model_name=None):
+def make_support_info(mud_version: int, mud_url: str, cache_validity: int,
+                      is_supported: bool, system_info: str, documentation: str, 
+                      masa_server: str = None, mfg_name: str = None, 
+                      last_update : str = None, model_name: str = None,
+                      firmware_rev: str = None, software_rev: str = None):
+    """Function to generate the MUD Model Definitions for the Root "mud" Container,
+       minus to-device-policy and from-device-policy Containers.
+
+    Args:
+        mud_version (int): This node specifies the integer version of the MUD specification.
+        mud_url (str): This is the MUD URL associated with the entry found in a MUD file.
+        cache_validity (int): The information retrieved from the MUD server is valid for these
+                              many hours, after which it should be refreshed.
+        is_supported (bool): This boolean indicates whether or not the Thing is currently supported
+                             by the manufacturer.
+        system_info (str): A UTF-8 description of this Thing.  This should be a brief description that may be
+                           displayed to the user to determine whether to allow the Thing on the network.
+        documentation (str): This URI consists of a URL that points to documentation relating to
+                             the device and the MUD file.
+        masa_server (:obj:`str`, optional): MASA server
+        mfg_name (:obj:`str`, optional): Manufacturer name, as described in the ietf-hardware YANG module.
+        last_update (:obj:`str`, optional): This is intended to be when the current MUD file
+                                            was generated.  MUD managers SHOULD NOT check
+                                            for updates between this time plus cache validity.
+        model_name (:obj:`str`, optional): Model name, as described in theietf-hardware YANG module.
+        firmware_rev (:obj:`str`, optional): firmware-rev, as described in the ietf-hardware YANG module. 
+                                             Note that this field MUST NOT be included when the device can be
+                                             updated but the MUD URL cannot.
+        software_rev (:obj:`str`, optional): software-rev, as described in the ietf-hardware YANG module. 
+                                             Note that this field MUST NOT be included when the device can be
+                                             updated but the MUD URL cannot.
+
+    Returns:
+        dict: A dictionary of the Root "mud" Container, minus to-device-policy and from-device-policy Containers.
+
+    """
     support_info = {}
 
     if mfg_name is not None:
@@ -23,6 +56,10 @@ def make_support_info(mud_version, mud_url, cache_validity,
         support_info['model-name'] = model_name
     if masa_server is not None:
         support_info["masa-server"] = masa_server
+    if firmware_rev is not None:
+        support_info["firmware-rev"] = firmware_rev
+    if software_rev is not None:
+        support_info["software-rev"] = software_rev
 
     support_info['mud-version'] = int(mud_version)
     support_info['mud-url'] = mud_url
@@ -99,7 +136,7 @@ def make_same_manufacturer_match():
 def make_sub_ace(sub_ace_name, protocol_direction, target_url, protocol, local_port, remote_port, match_type,
                  direction_initiated, ip_version):
     if len(target_url) > 140:
-        raise InputException('target url is to long: {}' % target_url)
+        raise InputException('target url is too long: {}' % target_url)
     match = {}
 
     ip_version = get_ipversion_string(ip_version)
