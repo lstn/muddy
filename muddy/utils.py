@@ -58,3 +58,4 @@ def get_sub_ace_name(ace_name, direction):
         return f"{ace_name}{'{}'}-todev"
     if direction is Direction.FROM_DEVICE:
         return f"{ace_name}{'{}'}-frdev"
+    raise InputException(f'direction is not valid: {direction}')
