@@ -1,2 +1,2 @@
 # muddy
-Muddy is a python package for generating MUD files.
+Muddy is a python package and CLI tool for generating MUD files.
