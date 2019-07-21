@@ -11,11 +11,13 @@ from muddy.utils import (
     get_ace_name, get_protocol_direction_suffix_string, get_policy_type_prefix_string
 )
 
+from overload import overload
+
 
 def make_support_info(mud_version: int, mud_url: str, cache_validity: int,
-                      is_supported: bool, system_info: str, documentation: str, 
-                      masa_server: str = None, mfg_name: str = None, 
-                      last_update : str = None, model_name: str = None,
+                      is_supported: bool, system_info: str, documentation: str,
+                      masa_server: str = None, mfg_name: str = None,
+                      last_update: str = None, model_name: str = None,
                       firmware_rev: str = None, software_rev: str = None):
     """Function to generate the MUD Model Definitions for the Root "mud" Container,
        minus to-device-policy and from-device-policy Containers.
@@ -272,13 +274,14 @@ def make_policy(direction_initiated, acl_names):
     }
 
 
-def make_mud(mud_version, mud_url, cache_validity, is_supported, system_info, documentation, direction_initiateds,
+@overload
+def make_mud(mud_version, mud_url, cache_validity, is_supported, system_info, documentation, directions_initiated,
              ip_version, target_url, protocol, local_ports, remote_ports, match_type, masa_server=None, mfg_name=None,
              last_update=None, model_name=None):
     mud_name = f'mud-{random.randint(10000, 99999)}'
     acl = []
     policies = {}
-    for direction_initiated in direction_initiateds:
+    for direction_initiated in directions_initiated:
         acl_names = make_acl_names(mud_name, ip_version, direction_initiated)
         policies.update(make_policy(direction_initiated, acl_names))
         acl.append(
@@ -289,3 +292,36 @@ def make_mud(mud_version, mud_url, cache_validity, is_supported, system_info, do
                             model_name)
     mud.update(policies)
     return {'ietf-mud:mud': mud, 'ietf-access-control-list:acls': {'acl': [acl]}}
+
+
+@make_mud.add
+def make_mud(mud_name, support_info, directions_initiated, ip_version, target_url, protocol, local_ports, remote_ports,
+             match_type):
+    acl = []
+    policies = {}
+    for direction_initiated in directions_initiated:
+        acl_names = make_acl_names(mud_name, ip_version, direction_initiated)
+        policies.update(make_policy(direction_initiated, acl_names))
+        acl.append(
+            make_acls(ip_version, target_url, protocol, local_ports, remote_ports, match_type, direction_initiated,
+                      acl_names))
+    mud = support_info
+    mud.update(policies)
+    return {'ietf-mud:mud': mud, 'ietf-access-control-list:acls': {'acl': [acl]}}
+
+
+@make_mud.add
+def make_mud(policies, acls, mud_version, mud_url, cache_validity, is_supported, system_info, documentation,
+             masa_server=None, mfg_name=None, last_update=None, model_name=None):
+    mud = make_support_info(mud_version, mud_url, cache_validity,
+                            is_supported, system_info, documentation, masa_server, mfg_name, last_update,
+                            model_name)
+    mud.update(policies)
+    return {'ietf-mud:mud': mud, 'ietf-access-control-list:acls': {'acl': acls}}
+
+
+@make_mud.add
+def make_mud(support_info, policies, acls):
+    mud = support_info
+    mud.update(policies)
+    return {'ietf-mud:mud': mud, 'ietf-access-control-list:acls': {'acl': acls}}
