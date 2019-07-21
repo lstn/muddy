@@ -245,7 +245,7 @@ def make_ace(target_url, protocol, local_ports, remote_ports, match_type,
     ace = []
     ace_name = get_ace_name(match_type)
     protocol_directions = [Direction.TO_DEVICE, Direction.FROM_DEVICE]
-    for i in range(len(protocol)) if protocol is not Protocol.ANY else range(1):
+    for i in range(len(protocol)) if not isinstance(protocol, Protocol) else range(1):
         sub_ace_name = get_sub_ace_name(ace_name, protocol_directions[i])
         ace.append(
             make_sub_ace(
