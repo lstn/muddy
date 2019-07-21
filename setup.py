@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='muddy',
-    version='2019.7.21-0',
+    version='2019.7.21-1',
     author='Lucas Estienne, Daniel Innes',
     author_email='lucas@estienne.sh, daniel.w.innes@gmail.com',
     packages=find_packages(),

@@ -1,7 +1,8 @@
 from pprint import pprint
 from datetime import datetime
-import re
-import random
+from overload import overload
+import re, random
+
 
 from muddy.constants import DOMAIN_NAME_REGEX, HTTP_URL_REGEX, URN_URL_REGEX
 from muddy.exceptions import InputException
@@ -10,8 +11,6 @@ from muddy.utils import (
     get_ipversion_string, get_ipversion_suffix_string, get_sub_ace_name,
     get_ace_name, get_protocol_direction_suffix_string, get_policy_type_prefix_string
 )
-
-from overload import overload
 
 
 def make_support_info(mud_version: int, mud_url: str, cache_validity: int,
@@ -302,7 +301,6 @@ def make_policy(direction_initiated, acl_names):
     policy_type_prefix = get_policy_type_prefix_string(direction_initiated)
     return {
         f"{policy_type_prefix}-device-policy": {'access-lists': {'access-list': acl_names}}
-
     }
 
 
