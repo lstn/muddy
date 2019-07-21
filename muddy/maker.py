@@ -225,5 +225,4 @@ def make_mud(mud_version, mud_url, cache_validity, is_supported, system_info, do
                             is_supported, system_info, documentation, masa_server, mfg_name, last_update,
                             model_name)
     mud.update(policys)
-    mud.update({'ietf-access-control-list:acls': {'acl': [acl]}})
-    return {'ietf-mud:mud': mud}
+    return {'ietf-mud:mud': mud, 'ietf-access-control-list:acls': {'acl': [acl]}}
