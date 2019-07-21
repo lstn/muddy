@@ -344,7 +344,7 @@ def make_mud(support_info, directions_initiated, ip_version:IPVersion, target_ur
 
 
 @make_mud.add
-def make_mud(policies, acls, mud_version, mud_url, cache_validity, is_supported, system_info, documentation,
+def make_mud_3(policies, acls, mud_version, mud_url, cache_validity, is_supported, system_info, documentation,
              masa_server=None, mfg_name=None, last_update=None, model_name=None):
     mud = make_support_info(mud_version, mud_url, cache_validity,
                             is_supported, system_info, documentation, masa_server, mfg_name, last_update,
@@ -354,7 +354,7 @@ def make_mud(policies, acls, mud_version, mud_url, cache_validity, is_supported,
 
 
 @make_mud.add
-def make_mud(support_info, policies, acls):
+def make_mud_4(support_info, policies, acls):
     mud = support_info
     mud.update(policies)
     return {'ietf-mud:mud': mud, 'ietf-access-control-list:acls': {'acl': acls}}
