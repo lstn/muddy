@@ -11,7 +11,8 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'Click',
+        'Click>=7,<8',
+        'overload>=1.1'
     ],
     entry_points='''
         [console_scripts]

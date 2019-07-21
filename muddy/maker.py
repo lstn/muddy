@@ -45,7 +45,8 @@ def make_support_info(mud_version: int, mud_url: str, cache_validity: int,
                                              updated but the MUD URL cannot.
 
     Returns:
-        dict: A dictionary of the Root "mud" Container, minus to-device-policy and from-device-policy Containers.
+        dict: A dictionary representing the Root "mud" Container, minus to-device-policy and from-device-policy 
+              Containers.
 
     """
     support_info = {}
@@ -74,6 +75,19 @@ def make_support_info(mud_version: int, mud_url: str, cache_validity: int,
 
 
 def make_port_range(dir_init, source_port, destination_port):
+    """Function to generate the port ranges for an ACL
+
+    Args:
+        dir_init (Direction): The direction for which the TCP connection was initiated. 
+                              `Direction.TO_DEVICE` for Remote, `Direction.FROM_DEVICE` for Thing,
+                              None for Either.
+        source_port (int): The source port for the range. None for ANY.
+        destination_port (int): The destination port for the range. None for ANY.
+
+    Returns:
+        dict: A dictionary representing the port range container.
+
+    """
     port_range = {}
 
     if dir_init is not None and dir_init is Direction.TO_DEVICE:
@@ -96,6 +110,18 @@ def make_port_range(dir_init, source_port, destination_port):
 
 
 def make_acldns_match(domain, direction):
+    """Function to generate an ACL match for a domain.
+
+    Args:
+        domain (str): The domain for this ACL
+        direction (Direction): The direction for which the TCP connection was initiated. 
+                               `Direction.TO_DEVICE` for source domain, `Direction.FROM_DEVICE` 
+                               for destination domain.
+
+    Returns:
+        dict: A dictionary representing the ACLDNS match.
+
+    """
     if not re.match(DOMAIN_NAME_REGEX, domain):
         raise InputException(f"Not a domain name: {domain}")
 
