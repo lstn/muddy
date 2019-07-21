@@ -227,19 +227,3 @@ def make_mud(mud_version, mud_url, cache_validity, is_supported, system_info, do
     mud.update(policys)
     mud.update({'ietf-access-control-list:acls': {'acl': [acl]}})
     return {'ietf-mud:mud': mud}
-
-
-if __name__ == '__main__':
-    # pprint(make_support_info(1, 'https://test/123', None, 48, True, None, 'aa', 'CIRA', 'https://doc.ca', '123'))
-    # pprint(make_support_info(1, 'https://test/123', None, 48, True, None, 'aa', None, 'https://doc.ca', '123'))
-    # pprint(make_port_range('to-device', 888, 80))
-    # pprint(
-    #     make_sub_ace('ace', Direction.TO_DEVICE, 'www.google.com', Protocol.UDP, 888, 80, MatchType.IS_CLOUD,
-    #                  'to-device', IPVersion.IPV4))
-    # pprint(
-    #     make_ace('ace', Direction.TO_DEVICE, 'www.google.com', [Protocol.ANY], [888, 57], [80, 4],
-    #              MatchType.IS_CLOUD,
-    #              ['to-device', 'to-device'], IPVersion.IPV4))
-    pprint(make_mud(1, 'mud_url', 48, 'is_supported', 'system_info', 'documentation',
-                    [Direction.TO_DEVICE, Direction.FROM_DEVICE], IPVersion.BOTH, 'target_url', Protocol.ANY, [88, 99],
-                    [77, 88], MatchType.IS_MY_CONTROLLER))
