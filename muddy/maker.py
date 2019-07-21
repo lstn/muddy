@@ -1,6 +1,7 @@
 from pprint import pprint
 from datetime import datetime
 import re
+import random
 
 from muddy.constants import DOMAIN_NAME_REGEX, HTTP_URL_REGEX, URN_URL_REGEX
 from muddy.exceptions import InputException
@@ -11,8 +12,9 @@ from muddy.utils import (
 )
 
 
-def make_support_info(mud_version, mud_url, last_update, cache_validity,
-                      is_supported, masa_server, system_info, mfg_name, documentation, model_name):
+def make_support_info(mud_version, mud_url, cache_validity,
+                      is_supported, system_info, documentation, masa_server=None, mfg_name=None, last_update=None,
+                      model_name=None):
     support_info = {}
 
     if mfg_name is not None:
@@ -76,11 +78,11 @@ def make_controller_match(url):
     if not (re.match(HTTP_URL_REGEX, url) or re.match(URN_URL_REGEX, url)):
         raise InputException('Not a valid URL: {}' % url)
 
-    return {'controller', url}
+    return {'controller': url}
 
 
 def make_my_controller_match():
-    return {'my-controller', [None]}
+    return {'my-controller': []}
 
 
 def make_manufacturer_match(domain):
@@ -91,7 +93,7 @@ def make_manufacturer_match(domain):
 
 
 def make_same_manufacturer_match():
-    return {'same-manufacturer', [None]}
+    return {'same-manufacturer': []}
 
 
 def make_sub_ace(sub_ace_name, protocol_direction, target_url, protocol, local_port, remote_port, match_type,
@@ -103,18 +105,25 @@ def make_sub_ace(sub_ace_name, protocol_direction, target_url, protocol, local_p
     ip_version = get_ipversion_string(ip_version)
     source_port = None
     destination_port = None
+    cloud_ipv4_entry = None
 
-    cloud_ipv4_entry = make_acldns_match(target_url, protocol_direction) if match_type is MatchType.IS_CLOUD else None
-    match['ietf-mud:mud'] = make_controller_match(target_url) if match_type is MatchType.IS_CONTROLLER else None
-    match['ietf-mud:mud'] = make_my_controller_match() if match_type is MatchType.IS_MY_CONTROLLER else None
-    match['ietf-mud:mud'] = make_manufacturer_match(target_url) if match_type is MatchType.IS_MFG else None
-    match['ietf-mud:mud'] = make_same_manufacturer_match() if match_type is MatchType.IS_MYMFG else None
+    if match_type is MatchType.IS_CLOUD:
+        cloud_ipv4_entry = make_acldns_match(target_url, protocol_direction)
+    elif match_type is MatchType.IS_CONTROLLER:
+        match['ietf-mud:mud'] = make_controller_match(target_url)
+    elif match_type is MatchType.IS_MY_CONTROLLER:
+        match['ietf-mud:mud'] = make_my_controller_match()
+    elif match_type is MatchType.IS_MFG:
+        match['ietf-mud:mud'] = make_manufacturer_match(target_url)
+    elif match_type is MatchType.IS_MYMFG:
+        match['ietf-mud:mud'] = make_same_manufacturer_match()
 
-    if match['ietf-mud:mud'] is None and not cloud_ipv4_entry:
+    if match['ietf-mud:mud'] is None and cloud_ipv4_entry is None:
         raise InputException(f"match_type is not valid: {match_type}")
 
-    if protocol is Protocol.ANY and cloud_ipv4_entry:
-        match['ipv4'] = cloud_ipv4_entry
+    if protocol is Protocol.ANY:
+        if cloud_ipv4_entry:
+            match[ip_version] = cloud_ipv4_entry
     else:
         if protocol_direction is Direction.TO_DEVICE:
             source_port = remote_port
@@ -123,10 +132,10 @@ def make_sub_ace(sub_ace_name, protocol_direction, target_url, protocol, local_p
             source_port = local_port
             destination_port = remote_port
         if protocol is Protocol.TCP:
-            match['ipv4'] = {'protocol': 6}
+            match[ip_version] = {'protocol': 6}
             match['tcp'] = make_port_range(direction_initiated, source_port, destination_port)
         elif protocol is Protocol.UDP:
-            match['ipv4'] = {'protocol': 17}
+            match[ip_version] = {'protocol': 17}
         else:
             raise InputException(f'protocol is not valid: {protocol}')
         if cloud_ipv4_entry:
@@ -134,46 +143,90 @@ def make_sub_ace(sub_ace_name, protocol_direction, target_url, protocol, local_p
     return {'name': sub_ace_name, 'matches': match}
 
 
-def make_ace(protocol_direction, target_url, protocol, local_ports, remote_ports, match_type,
-             direction_initiateds, ip_version):
+def make_ace(target_url, protocol, local_ports, remote_ports, match_type,
+             direction_initiated, ip_version):
     ace = []
     ace_name = get_ace_name(match_type)
-    sub_ace_name = get_sub_ace_name(ace_name, protocol_direction)
-
-    for i in range(len(protocol)):
+    protocol_directions = [Direction.TO_DEVICE, Direction.FROM_DEVICE]
+    for i in range(len(protocol)) if protocol is not Protocol.ANY else range(1):
+        sub_ace_name = get_sub_ace_name(ace_name, protocol_directions[i])
         ace.append(
             make_sub_ace(
-                sub_ace_name.format(i), protocol_direction[i], target_url, protocol, local_ports[i],
-                remote_ports[i], match_type, direction_initiateds, ip_version
+                sub_ace_name.format(i), protocol_directions[i], target_url, protocol, local_ports[i],
+                remote_ports[i], match_type, direction_initiated, ip_version
             )
         )
     return ace
 
 
-def make_acl(ip_version, protocol_direction, target_url, protocol, local_ports, remote_ports, match_type,
-             direction_initiateds, acl_name=None, mud_name=None):
+def make_acl(ip_version, target_url, protocol, local_ports, remote_ports, match_type,
+             direction_initiated, acl_name=None, mud_name=None):
     acl_type_prefix = get_ipversion_string(ip_version)
-
     if acl_name is None and mud_name is None:
         raise InputException('acl_name and mud_name can\'t both by None at the same time')
     elif acl_name is None:
-        acl_name = make_acl_name(mud_name, ip_version, protocol_direction)
+        acl_name = make_acl_name(mud_name, ip_version, direction_initiated)
     return {'name': acl_name, 'type': acl_type_prefix,
-            'aces': {'ace': [make_ace(protocol_direction, target_url, protocol, local_ports, remote_ports, match_type,
-                                      direction_initiateds, ip_version)]}}
+            'aces': {'ace': [make_ace(target_url, protocol, local_ports, remote_ports, match_type,
+                                      direction_initiated, ip_version)]}}
 
 
-def make_acl_name(mud_name, ip_version, protocol_direction):
+def make_acls(ip_version, target_url, protocol, local_ports, remote_ports, match_type,
+              direction_initiated, acl_names=None, mud_name=None):
+    acls = []
+    if acl_names is None and mud_name is None:
+        raise InputException('acl_names and mud_name can\'t both by None at the same time')
+    elif acl_names is None:
+        acl_names = make_acl_names(mud_name, ip_version, direction_initiated)
+    if ip_version is IPVersion.BOTH:
+        ip_version = [IPVersion.IPV4, IPVersion.IPV6]
+    for i in range(len(acl_names)):
+        acls.append(make_acl(ip_version[i], target_url, protocol, local_ports, remote_ports, match_type,
+                             direction_initiated, acl_names[i]))
+    return acls
+
+
+def make_acl_name(mud_name, ip_version, direction_initiated):
     acl_name_suffix_ip_version = get_ipversion_suffix_string(ip_version)
-    acl_name_suffix_protocol_direction = get_protocol_direction_suffix_string(protocol_direction)
+    acl_name_suffix_protocol_direction = get_protocol_direction_suffix_string(direction_initiated)
 
     return f"{mud_name}{acl_name_suffix_ip_version}{acl_name_suffix_protocol_direction}"
 
-def make_policy(protocol_direction, acl_names):
-    policy_type_prefix = get_policy_type_prefix_string(protocol_direction)
+
+def make_acl_names(mud_name, ip_version, direction_initiated):
+    acl_names = []
+    if ip_version is IPVersion.BOTH:
+        acl_names.append(make_acl_name(mud_name, IPVersion.IPV4, direction_initiated))
+        acl_names.append(make_acl_name(mud_name, IPVersion.IPV6, direction_initiated))
+    return acl_names
+
+
+def make_policy(direction_initiated, acl_names):
+    policy_type_prefix = get_policy_type_prefix_string(direction_initiated)
     return {
         f"{policy_type_prefix}-device-policy": {'access-lists': {'access-list': acl_names}}
+
     }
+
+
+def make_mud(mud_version, mud_url, cache_validity, is_supported, system_info, documentation, direction_initiateds,
+             ip_version, target_url, protocol, local_ports, remote_ports, match_type, masa_server=None, mfg_name=None,
+             last_update=None, model_name=None):
+    mud_name = f'mud-{random.randint(10000, 99999)}'
+    acl = []
+    policys = {}
+    for direction_initiated in direction_initiateds:
+        acl_names = make_acl_names(mud_name, ip_version, direction_initiated)
+        policys.update(make_policy(direction_initiated, acl_names))
+        acl.append(
+            make_acls(ip_version, target_url, protocol, local_ports, remote_ports, match_type, direction_initiated,
+                      acl_names))
+    mud = make_support_info(mud_version, mud_url, cache_validity,
+                            is_supported, system_info, documentation, masa_server, mfg_name, last_update,
+                            model_name)
+    mud.update(policys)
+    mud.update({'ietf-access-control-list:acls': {'acl': [acl]}})
+    return {'ietf-mud:mud': mud}
 
 
 if __name__ == '__main__':
@@ -183,7 +236,10 @@ if __name__ == '__main__':
     # pprint(
     #     make_sub_ace('ace', Direction.TO_DEVICE, 'www.google.com', Protocol.UDP, 888, 80, MatchType.IS_CLOUD,
     #                  'to-device', IPVersion.IPV4))
-    pprint(
-        make_ace('ace', Direction.TO_DEVICE, 'www.google.com', [Protocol.ANY], [888, 57], [80, 4],
-                 MatchType.IS_CLOUD,
-                 ['to-device', 'to-device'], IPVersion.IPV4))
+    # pprint(
+    #     make_ace('ace', Direction.TO_DEVICE, 'www.google.com', [Protocol.ANY], [888, 57], [80, 4],
+    #              MatchType.IS_CLOUD,
+    #              ['to-device', 'to-device'], IPVersion.IPV4))
+    pprint(make_mud(1, 'mud_url', 48, 'is_supported', 'system_info', 'documentation',
+                    [Direction.TO_DEVICE, Direction.FROM_DEVICE], IPVersion.BOTH, 'target_url', Protocol.ANY, [88, 99],
+                    [77, 88], MatchType.IS_MY_CONTROLLER))
