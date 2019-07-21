@@ -63,3 +63,67 @@ for direction_initiated in [models.Direction.TO_DEVICE,models.Direction.FROM_DEV
 
 mud = maker.make_mud(support_info, policies, acl)
 ```
+## Example output
+```json
+{
+  "ietf-mud:mud": {
+    "mud-version": 1,
+    "mud-url": "https://lighting.example.com/lightbulb2000",
+    "last-update": "2019-07-21T14:40:16",
+    "cache-validity": 48,
+    "is-supported": true,
+    "systeminfo": "The BMS Example Light Bulb",
+    "documentation": "https://lighting.example.com/lightbulb2000/documentation",
+    "to-device-policy": {
+      "access-lists": {
+        "access-list": [
+          "mud-56908-v4to"
+        ]
+      }
+    },
+    "from-device-policy": {
+      "access-lists": {
+        "access-list": [
+          "mud-56908-v4fr"
+        ]
+      }
+    }
+  },
+  "ietf-access-control-list:acls": {
+    "acl": [
+      {
+        "name": "mud-56908-v4to",
+        "type": "ipv4",
+        "aces": {
+          "ace": [
+            {
+              "name": "myman0-todev",
+              "matches": {
+                "ietf-mud:mud": {
+                  "same-manufacturer": []
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "mud-56908-v4fr",
+        "type": "ipv4",
+        "aces": {
+          "ace": [
+            {
+              "name": "myman0-todev",
+              "matches": {
+                "ietf-mud:mud": {
+                  "same-manufacturer": []
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+```
