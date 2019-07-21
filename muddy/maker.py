@@ -32,16 +32,16 @@ def make_support_info(mud_version: int, mud_url: str, cache_validity: int,
                            displayed to the user to determine whether to allow the Thing on the network.
         documentation (str): This URI consists of a URL that points to documentation relating to
                              the device and the MUD file.
-        masa_server (:obj:`str`, optional): MASA server
-        mfg_name (:obj:`str`, optional): Manufacturer name, as described in the ietf-hardware YANG module.
-        last_update (:obj:`str`, optional): This is intended to be when the current MUD file
+        masa_server (str, optional): MASA server
+        mfg_name (str, optional): Manufacturer name, as described in the ietf-hardware YANG module.
+        last_update (str, optional): This is intended to be when the current MUD file
                                             was generated.  MUD managers SHOULD NOT check
                                             for updates between this time plus cache validity.
-        model_name (:obj:`str`, optional): Model name, as described in theietf-hardware YANG module.
-        firmware_rev (:obj:`str`, optional): firmware-rev, as described in the ietf-hardware YANG module. 
+        model_name (str, optional): Model name, as described in theietf-hardware YANG module.
+        firmware_rev (str, optional): firmware-rev, as described in the ietf-hardware YANG module. 
                                              Note that this field MUST NOT be included when the device can be
                                              updated but the MUD URL cannot.
-        software_rev (:obj:`str`, optional): software-rev, as described in the ietf-hardware YANG module. 
+        software_rev (str, optional): software-rev, as described in the ietf-hardware YANG module. 
                                              Note that this field MUST NOT be included when the device can be
                                              updated but the MUD URL cannot.
 

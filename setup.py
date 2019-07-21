@@ -7,7 +7,7 @@ setup(
     name='muddy',
     version='2019.7.21-1',
     author='Lucas Estienne, Daniel Innes',
-    author_email='lucas@estienne.sh, daniel.w.innes@gmail.com',
+    author_email='lucas@estienne.sh; daniel.w.innes@gmail.com',
     packages=find_packages(),
     include_package_data=True,
     install_requires=[

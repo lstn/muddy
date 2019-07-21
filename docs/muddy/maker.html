@@ -1,0 +1,960 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.3" />
+<title>muddy.maker API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>muddy.maker</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">from pprint import pprint
+from datetime import datetime
+from overload import overload
+import re, random
+
+
+from muddy.constants import DOMAIN_NAME_REGEX, HTTP_URL_REGEX, URN_URL_REGEX
+from muddy.exceptions import InputException
+from muddy.models import MatchType, IPVersion, Protocol, Direction
+from muddy.utils import (
+    get_ipversion_string, get_ipversion_suffix_string, get_sub_ace_name,
+    get_ace_name, get_protocol_direction_suffix_string, get_policy_type_prefix_string
+)
+
+
+def make_support_info(mud_version: int, mud_url: str, cache_validity: int,
+                      is_supported: bool, system_info: str, documentation: str,
+                      masa_server: str = None, mfg_name: str = None,
+                      last_update: str = None, model_name: str = None,
+                      firmware_rev: str = None, software_rev: str = None):
+    &#34;&#34;&#34;Function to generate the MUD Model Definitions for the Root &#34;mud&#34; Container,
+       minus to-device-policy and from-device-policy Containers.
+
+    Args:
+        mud_version (int): This node specifies the integer version of the MUD specification.
+        mud_url (str): This is the MUD URL associated with the entry found in a MUD file.
+        cache_validity (int): The information retrieved from the MUD server is valid for these
+                              many hours, after which it should be refreshed.
+        is_supported (bool): This boolean indicates whether or not the Thing is currently supported
+                             by the manufacturer.
+        system_info (str): A UTF-8 description of this Thing.  This should be a brief description that may be
+                           displayed to the user to determine whether to allow the Thing on the network.
+        documentation (str): This URI consists of a URL that points to documentation relating to
+                             the device and the MUD file.
+        masa_server (str, optional): MASA server
+        mfg_name (str, optional): Manufacturer name, as described in the ietf-hardware YANG module.
+        last_update (str, optional): This is intended to be when the current MUD file
+                                            was generated.  MUD managers SHOULD NOT check
+                                            for updates between this time plus cache validity.
+        model_name (str, optional): Model name, as described in theietf-hardware YANG module.
+        firmware_rev (str, optional): firmware-rev, as described in the ietf-hardware YANG module. 
+                                             Note that this field MUST NOT be included when the device can be
+                                             updated but the MUD URL cannot.
+        software_rev (str, optional): software-rev, as described in the ietf-hardware YANG module. 
+                                             Note that this field MUST NOT be included when the device can be
+                                             updated but the MUD URL cannot.
+
+    Returns:
+        dict: A dictionary representing the Root &#34;mud&#34; Container, minus to-device-policy and from-device-policy 
+              Containers.
+
+    &#34;&#34;&#34;
+    support_info = {}
+
+    if mfg_name is not None:
+        support_info[&#39;mfg-name&#39;] = mfg_name
+    if model_name is not None:
+        support_info[&#39;model-name&#39;] = model_name
+    if masa_server is not None:
+        support_info[&#34;masa-server&#34;] = masa_server
+    if firmware_rev is not None:
+        support_info[&#34;firmware-rev&#34;] = firmware_rev
+    if software_rev is not None:
+        support_info[&#34;software-rev&#34;] = software_rev
+
+    support_info[&#39;mud-version&#39;] = int(mud_version)
+    support_info[&#39;mud-url&#39;] = mud_url
+    support_info[&#39;last-update&#39;] = last_update if last_update is not None else datetime.now().strftime(
+        &#39;%Y-%m-%dT%H:%M:%S%z&#39;)
+    support_info[&#39;cache-validity&#39;] = int(cache_validity)
+    support_info[&#39;is-supported&#39;] = is_supported
+    support_info[&#39;systeminfo&#39;] = system_info
+    support_info[&#39;documentation&#39;] = documentation
+
+    return support_info
+
+
+def make_port_range(dir_init: Direction, source_port: int, destination_port: int):
+    &#34;&#34;&#34;Function to generate the port ranges for an ACL
+
+    Args:
+        dir_init (Direction): The direction for which the TCP connection was initiated. 
+                              `Direction.TO_DEVICE` for Remote, `Direction.FROM_DEVICE` for Thing,
+                              None for Either.
+        source_port (int): The source port for the range. None for ANY.
+        destination_port (int): The destination port for the range. None for ANY.
+
+    Returns:
+        dict: A dictionary representing the port range container.
+
+    &#34;&#34;&#34;
+    port_range = {}
+
+    if dir_init is not None and dir_init is Direction.TO_DEVICE:
+        port_range[&#39;ietf-mud:direction-initiated&#39;] = &#34;to-device&#34;
+    if dir_init is not None and dir_init is Direction.FROM_DEVICE:
+        port_range[&#39;ietf-mud:direction-initiated&#39;] = &#34;from-device&#34;
+
+    if source_port is not None:
+        port_range[&#39;source-port&#39;] = {
+            &#39;operator&#39;: &#39;eq&#39;,
+            &#39;port&#39;: int(source_port)
+        }
+    if destination_port is not None:
+        port_range[&#39;destination-port&#39;] = {
+            &#39;operator&#39;: &#39;eq&#39;,
+            &#39;port&#39;: int(destination_port)
+        }
+
+    return port_range
+
+
+def make_acldns_match(domain: str, direction: Direction):
+    &#34;&#34;&#34;Function to generate an ACL match for a domain.
+
+    Args:
+        domain (str): The domain for this ACL
+        direction (Direction): The direction for which the TCP connection was initiated. 
+                               `Direction.TO_DEVICE` for source domain, `Direction.FROM_DEVICE` 
+                               for destination domain.
+
+    Returns:
+        dict: A dictionary representing the ACLDNS match.
+
+    &#34;&#34;&#34;
+    if not re.match(DOMAIN_NAME_REGEX, domain):
+        raise InputException(f&#34;Not a domain name: {domain}&#34;)
+
+    acldns_match = {}
+    key = &#34;ietf-acldns:src-dnsname&#34; if direction is Direction.TO_DEVICE else \
+        &#34;ietf-acldns:dst-dnsname&#34; if direction is Direction.FROM_DEVICE else None
+
+    if key:
+        acldns_match[key] = domain
+    else:
+        raise InputException(f&#34;direction is not valid: {direction}&#34;)
+
+    return acldns_match
+
+
+def make_controller_match(uri: str):
+    &#34;&#34;&#34;Function to generate an ACL match for classes of devices that are known to be controllers
+
+    Args:
+        url (str): URI for the device class
+
+    Returns:
+        dict: A dictionary representing the controller match.
+
+    &#34;&#34;&#34;
+    if not (re.match(HTTP_URL_REGEX, uri) or re.match(URN_URL_REGEX, uri)):
+        raise InputException(&#39;Not a valid URI: {}&#39; % uri)
+
+    return {&#39;controller&#39;: uri}
+
+
+def make_my_controller_match():
+    &#34;&#34;&#34;Function to generate an ACL match for access to controllers specific to this device 
+
+    Returns:
+        dict: A dictionary representing the my-controller match.
+
+    &#34;&#34;&#34;
+    return {&#39;my-controller&#39;: []}
+
+
+def make_manufacturer_match(domain: str):
+    &#34;&#34;&#34;Function to generate an ACL match for access to named manufacturers of devices that 
+       are identified by the domain names in their MUD URLs
+
+    Args:
+        domain (str): domain name for manufacturer
+    
+    Returns:
+        dict: A dictionary representing the manufacturer match.
+
+    &#34;&#34;&#34;
+    if not re.match(DOMAIN_NAME_REGEX, domain):
+        raise InputException(&#34;Not a domain name: {domain}&#34;)
+
+    return {&#39;manufacturer&#39;: domain}
+
+
+def make_same_manufacturer_match():
+    &#34;&#34;&#34;Function to generate an ACL match for access to devices to/from the same 
+       manufacturer based on the domain name in the MUD URL.    
+    
+    Returns:
+        dict: A dictionary representing the same-manufacturer match.
+
+    &#34;&#34;&#34;
+    return {&#39;same-manufacturer&#39;: []}
+
+
+def make_sub_ace(sub_ace_name, protocol_direction, target_url, protocol, local_port, remote_port, match_type,
+                 direction_initiated, ip_version):
+    if len(target_url) &gt; 140:
+        raise InputException(&#39;target url is too long: {}&#39; % target_url)
+    match = {}
+
+    ip_version = get_ipversion_string(ip_version)
+    source_port = None
+    destination_port = None
+    cloud_ipv4_entry = None
+
+    if match_type is MatchType.IS_CLOUD:
+        cloud_ipv4_entry = make_acldns_match(target_url, protocol_direction)
+    elif match_type is MatchType.IS_CONTROLLER:
+        match[&#39;ietf-mud:mud&#39;] = make_controller_match(target_url)
+    elif match_type is MatchType.IS_MY_CONTROLLER:
+        match[&#39;ietf-mud:mud&#39;] = make_my_controller_match()
+    elif match_type is MatchType.IS_MFG:
+        match[&#39;ietf-mud:mud&#39;] = make_manufacturer_match(target_url)
+    elif match_type is MatchType.IS_MYMFG:
+        match[&#39;ietf-mud:mud&#39;] = make_same_manufacturer_match()
+
+    if match[&#39;ietf-mud:mud&#39;] is None and cloud_ipv4_entry is None:
+        raise InputException(f&#34;match_type is not valid: {match_type}&#34;)
+
+    if protocol is Protocol.ANY:
+        if cloud_ipv4_entry:
+            match[ip_version] = cloud_ipv4_entry
+    else:
+        if protocol_direction is Direction.TO_DEVICE:
+            source_port = remote_port
+            destination_port = local_port
+        elif protocol_direction is Direction.FROM_DEVICE:
+            source_port = local_port
+            destination_port = remote_port
+        if protocol is Protocol.TCP:
+            match[ip_version] = {&#39;protocol&#39;: 6}
+            match[&#39;tcp&#39;] = make_port_range(direction_initiated, source_port, destination_port)
+        elif protocol is Protocol.UDP:
+            match[ip_version] = {&#39;protocol&#39;: 17}
+        else:
+            raise InputException(f&#39;protocol is not valid: {protocol}&#39;)
+        if cloud_ipv4_entry:
+            match[ip_version].update(cloud_ipv4_entry)
+    return {&#39;name&#39;: sub_ace_name, &#39;matches&#39;: match}
+
+
+def make_ace(target_url, protocol, local_ports, remote_ports, match_type,
+             direction_initiated, ip_version):
+    ace = []
+    ace_name = get_ace_name(match_type)
+    protocol_directions = [Direction.TO_DEVICE, Direction.FROM_DEVICE]
+    for i in range(len(protocol)) if protocol is not Protocol.ANY else range(1):
+        sub_ace_name = get_sub_ace_name(ace_name, protocol_directions[i])
+        ace.append(
+            make_sub_ace(
+                sub_ace_name.format(i), protocol_directions[i], target_url, protocol, local_ports[i],
+                remote_ports[i], match_type, direction_initiated, ip_version
+            )
+        )
+    return ace
+
+
+def make_acl(ip_version, target_url, protocol, local_ports, remote_ports, match_type,
+             direction_initiated, acl_name=None, mud_name=None):
+    acl_type_prefix = get_ipversion_string(ip_version)
+    if acl_name is None and mud_name is None:
+        raise InputException(&#39;acl_name and mud_name can\&#39;t both by None at the same time&#39;)
+    elif acl_name is None:
+        acl_name = make_acl_name(mud_name, ip_version, direction_initiated)
+    return {&#39;name&#39;: acl_name, &#39;type&#39;: acl_type_prefix,
+            &#39;aces&#39;: {&#39;ace&#39;: [make_ace(target_url, protocol, local_ports, remote_ports, match_type,
+                                      direction_initiated, ip_version)]}}
+
+
+def make_acls(ip_version, target_url, protocol, local_ports, remote_ports, match_type,
+              direction_initiated, acl_names=None, mud_name=None):
+    acls = []
+    if acl_names is None and mud_name is None:
+        raise InputException(&#39;acl_names and mud_name can\&#39;t both by None at the same time&#39;)
+    elif acl_names is None:
+        acl_names = make_acl_names(mud_name, ip_version, direction_initiated)
+    if ip_version is IPVersion.BOTH:
+        ip_version = [IPVersion.IPV4, IPVersion.IPV6]
+    for i in range(len(acl_names)):
+        acls.append(make_acl(ip_version[i], target_url, protocol, local_ports, remote_ports, match_type,
+                             direction_initiated, acl_names[i]))
+    return acls
+
+
+def make_acl_name(mud_name, ip_version, direction_initiated):
+    acl_name_suffix_ip_version = get_ipversion_suffix_string(ip_version)
+    acl_name_suffix_protocol_direction = get_protocol_direction_suffix_string(direction_initiated)
+
+    return f&#34;{mud_name}{acl_name_suffix_ip_version}{acl_name_suffix_protocol_direction}&#34;
+
+
+def make_acl_names(mud_name, ip_version, direction_initiated):
+    acl_names = []
+    if ip_version is IPVersion.BOTH:
+        acl_names.append(make_acl_name(mud_name, IPVersion.IPV4, direction_initiated))
+        acl_names.append(make_acl_name(mud_name, IPVersion.IPV6, direction_initiated))
+    return acl_names
+
+
+def make_policy(direction_initiated, acl_names):
+    policy_type_prefix = get_policy_type_prefix_string(direction_initiated)
+    return {
+        f&#34;{policy_type_prefix}-device-policy&#34;: {&#39;access-lists&#39;: {&#39;access-list&#39;: acl_names}}
+    }
+
+
+@overload
+def make_mud(mud_version, mud_url, cache_validity, is_supported, system_info, documentation, directions_initiated,
+             ip_version, target_url, protocol, local_ports, remote_ports, match_type, masa_server=None, mfg_name=None,
+             last_update=None, model_name=None):
+    mud_name = f&#39;mud-{random.randint(10000, 99999)}&#39;
+    acl = []
+    policies = {}
+    for direction_initiated in directions_initiated:
+        acl_names = make_acl_names(mud_name, ip_version, direction_initiated)
+        policies.update(make_policy(direction_initiated, acl_names))
+        acl.append(
+            make_acls(ip_version, target_url, protocol, local_ports, remote_ports, match_type, direction_initiated,
+                      acl_names))
+    mud = make_support_info(mud_version, mud_url, cache_validity,
+                            is_supported, system_info, documentation, masa_server, mfg_name, last_update,
+                            model_name)
+    mud.update(policies)
+    return {&#39;ietf-mud:mud&#39;: mud, &#39;ietf-access-control-list:acls&#39;: {&#39;acl&#39;: [acl]}}
+
+
+@make_mud.add
+def make_mud(mud_name, support_info, directions_initiated, ip_version, target_url, protocol, local_ports, remote_ports,
+             match_type):
+    acl = []
+    policies = {}
+    for direction_initiated in directions_initiated:
+        acl_names = make_acl_names(mud_name, ip_version, direction_initiated)
+        policies.update(make_policy(direction_initiated, acl_names))
+        acl.append(
+            make_acls(ip_version, target_url, protocol, local_ports, remote_ports, match_type, direction_initiated,
+                      acl_names))
+    mud = support_info
+    mud.update(policies)
+    return {&#39;ietf-mud:mud&#39;: mud, &#39;ietf-access-control-list:acls&#39;: {&#39;acl&#39;: [acl]}}
+
+
+@make_mud.add
+def make_mud(policies, acls, mud_version, mud_url, cache_validity, is_supported, system_info, documentation,
+             masa_server=None, mfg_name=None, last_update=None, model_name=None):
+    mud = make_support_info(mud_version, mud_url, cache_validity,
+                            is_supported, system_info, documentation, masa_server, mfg_name, last_update,
+                            model_name)
+    mud.update(policies)
+    return {&#39;ietf-mud:mud&#39;: mud, &#39;ietf-access-control-list:acls&#39;: {&#39;acl&#39;: acls}}
+
+
+@make_mud.add
+def make_mud(support_info, policies, acls):
+    mud = support_info
+    mud.update(policies)
+    return {&#39;ietf-mud:mud&#39;: mud, &#39;ietf-access-control-list:acls&#39;: {&#39;acl&#39;: acls}}</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="muddy.maker.make_ace"><code class="name flex">
+<span>def <span class="ident">make_ace</span></span>(<span>target_url, protocol, local_ports, remote_ports, match_type, direction_initiated, ip_version)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def make_ace(target_url, protocol, local_ports, remote_ports, match_type,
+             direction_initiated, ip_version):
+    ace = []
+    ace_name = get_ace_name(match_type)
+    protocol_directions = [Direction.TO_DEVICE, Direction.FROM_DEVICE]
+    for i in range(len(protocol)) if protocol is not Protocol.ANY else range(1):
+        sub_ace_name = get_sub_ace_name(ace_name, protocol_directions[i])
+        ace.append(
+            make_sub_ace(
+                sub_ace_name.format(i), protocol_directions[i], target_url, protocol, local_ports[i],
+                remote_ports[i], match_type, direction_initiated, ip_version
+            )
+        )
+    return ace</code></pre>
+</details>
+</dd>
+<dt id="muddy.maker.make_acl"><code class="name flex">
+<span>def <span class="ident">make_acl</span></span>(<span>ip_version, target_url, protocol, local_ports, remote_ports, match_type, direction_initiated, acl_name=None, mud_name=None)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def make_acl(ip_version, target_url, protocol, local_ports, remote_ports, match_type,
+             direction_initiated, acl_name=None, mud_name=None):
+    acl_type_prefix = get_ipversion_string(ip_version)
+    if acl_name is None and mud_name is None:
+        raise InputException(&#39;acl_name and mud_name can\&#39;t both by None at the same time&#39;)
+    elif acl_name is None:
+        acl_name = make_acl_name(mud_name, ip_version, direction_initiated)
+    return {&#39;name&#39;: acl_name, &#39;type&#39;: acl_type_prefix,
+            &#39;aces&#39;: {&#39;ace&#39;: [make_ace(target_url, protocol, local_ports, remote_ports, match_type,
+                                      direction_initiated, ip_version)]}}</code></pre>
+</details>
+</dd>
+<dt id="muddy.maker.make_acl_name"><code class="name flex">
+<span>def <span class="ident">make_acl_name</span></span>(<span>mud_name, ip_version, direction_initiated)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def make_acl_name(mud_name, ip_version, direction_initiated):
+    acl_name_suffix_ip_version = get_ipversion_suffix_string(ip_version)
+    acl_name_suffix_protocol_direction = get_protocol_direction_suffix_string(direction_initiated)
+
+    return f&#34;{mud_name}{acl_name_suffix_ip_version}{acl_name_suffix_protocol_direction}&#34;</code></pre>
+</details>
+</dd>
+<dt id="muddy.maker.make_acl_names"><code class="name flex">
+<span>def <span class="ident">make_acl_names</span></span>(<span>mud_name, ip_version, direction_initiated)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def make_acl_names(mud_name, ip_version, direction_initiated):
+    acl_names = []
+    if ip_version is IPVersion.BOTH:
+        acl_names.append(make_acl_name(mud_name, IPVersion.IPV4, direction_initiated))
+        acl_names.append(make_acl_name(mud_name, IPVersion.IPV6, direction_initiated))
+    return acl_names</code></pre>
+</details>
+</dd>
+<dt id="muddy.maker.make_acldns_match"><code class="name flex">
+<span>def <span class="ident">make_acldns_match</span></span>(<span>domain, direction)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Function to generate an ACL match for a domain.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>domain</code></strong> :&ensp;<code>str</code></dt>
+<dd>The domain for this ACL</dd>
+<dt><strong><code>direction</code></strong> :&ensp;<code>Direction</code></dt>
+<dd>The direction for which the TCP connection was initiated.
+<code>Direction.TO_DEVICE</code> for source domain, <code>Direction.FROM_DEVICE</code>
+for destination domain.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>dict</code></strong></dt>
+<dd>A dictionary representing the ACLDNS match.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def make_acldns_match(domain: str, direction: Direction):
+    &#34;&#34;&#34;Function to generate an ACL match for a domain.
+
+    Args:
+        domain (str): The domain for this ACL
+        direction (Direction): The direction for which the TCP connection was initiated. 
+                               `Direction.TO_DEVICE` for source domain, `Direction.FROM_DEVICE` 
+                               for destination domain.
+
+    Returns:
+        dict: A dictionary representing the ACLDNS match.
+
+    &#34;&#34;&#34;
+    if not re.match(DOMAIN_NAME_REGEX, domain):
+        raise InputException(f&#34;Not a domain name: {domain}&#34;)
+
+    acldns_match = {}
+    key = &#34;ietf-acldns:src-dnsname&#34; if direction is Direction.TO_DEVICE else \
+        &#34;ietf-acldns:dst-dnsname&#34; if direction is Direction.FROM_DEVICE else None
+
+    if key:
+        acldns_match[key] = domain
+    else:
+        raise InputException(f&#34;direction is not valid: {direction}&#34;)
+
+    return acldns_match</code></pre>
+</details>
+</dd>
+<dt id="muddy.maker.make_acls"><code class="name flex">
+<span>def <span class="ident">make_acls</span></span>(<span>ip_version, target_url, protocol, local_ports, remote_ports, match_type, direction_initiated, acl_names=None, mud_name=None)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def make_acls(ip_version, target_url, protocol, local_ports, remote_ports, match_type,
+              direction_initiated, acl_names=None, mud_name=None):
+    acls = []
+    if acl_names is None and mud_name is None:
+        raise InputException(&#39;acl_names and mud_name can\&#39;t both by None at the same time&#39;)
+    elif acl_names is None:
+        acl_names = make_acl_names(mud_name, ip_version, direction_initiated)
+    if ip_version is IPVersion.BOTH:
+        ip_version = [IPVersion.IPV4, IPVersion.IPV6]
+    for i in range(len(acl_names)):
+        acls.append(make_acl(ip_version[i], target_url, protocol, local_ports, remote_ports, match_type,
+                             direction_initiated, acl_names[i]))
+    return acls</code></pre>
+</details>
+</dd>
+<dt id="muddy.maker.make_controller_match"><code class="name flex">
+<span>def <span class="ident">make_controller_match</span></span>(<span>uri)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Function to generate an ACL match for classes of devices that are known to be controllers</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>url</code></strong> :&ensp;<code>str</code></dt>
+<dd>URI for the device class</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>dict</code></strong></dt>
+<dd>A dictionary representing the controller match.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def make_controller_match(uri: str):
+    &#34;&#34;&#34;Function to generate an ACL match for classes of devices that are known to be controllers
+
+    Args:
+        url (str): URI for the device class
+
+    Returns:
+        dict: A dictionary representing the controller match.
+
+    &#34;&#34;&#34;
+    if not (re.match(HTTP_URL_REGEX, uri) or re.match(URN_URL_REGEX, uri)):
+        raise InputException(&#39;Not a valid URI: {}&#39; % uri)
+
+    return {&#39;controller&#39;: uri}</code></pre>
+</details>
+</dd>
+<dt id="muddy.maker.make_manufacturer_match"><code class="name flex">
+<span>def <span class="ident">make_manufacturer_match</span></span>(<span>domain)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Function to generate an ACL match for access to named manufacturers of devices that
+are identified by the domain names in their MUD URLs</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>domain</code></strong> :&ensp;<code>str</code></dt>
+<dd>domain name for manufacturer</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>dict</code></strong></dt>
+<dd>A dictionary representing the manufacturer match.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def make_manufacturer_match(domain: str):
+    &#34;&#34;&#34;Function to generate an ACL match for access to named manufacturers of devices that 
+       are identified by the domain names in their MUD URLs
+
+    Args:
+        domain (str): domain name for manufacturer
+    
+    Returns:
+        dict: A dictionary representing the manufacturer match.
+
+    &#34;&#34;&#34;
+    if not re.match(DOMAIN_NAME_REGEX, domain):
+        raise InputException(&#34;Not a domain name: {domain}&#34;)
+
+    return {&#39;manufacturer&#39;: domain}</code></pre>
+</details>
+</dd>
+<dt id="muddy.maker.make_mud"><code class="name flex">
+<span>def <span class="ident">make_mud</span></span>(<span>mud_version, mud_url, cache_validity, is_supported, system_info, documentation, directions_initiated, ip_version, target_url, protocol, local_ports, remote_ports, match_type, masa_server=None, mfg_name=None, last_update=None, model_name=None)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@overload
+def make_mud(mud_version, mud_url, cache_validity, is_supported, system_info, documentation, directions_initiated,
+             ip_version, target_url, protocol, local_ports, remote_ports, match_type, masa_server=None, mfg_name=None,
+             last_update=None, model_name=None):
+    mud_name = f&#39;mud-{random.randint(10000, 99999)}&#39;
+    acl = []
+    policies = {}
+    for direction_initiated in directions_initiated:
+        acl_names = make_acl_names(mud_name, ip_version, direction_initiated)
+        policies.update(make_policy(direction_initiated, acl_names))
+        acl.append(
+            make_acls(ip_version, target_url, protocol, local_ports, remote_ports, match_type, direction_initiated,
+                      acl_names))
+    mud = make_support_info(mud_version, mud_url, cache_validity,
+                            is_supported, system_info, documentation, masa_server, mfg_name, last_update,
+                            model_name)
+    mud.update(policies)
+    return {&#39;ietf-mud:mud&#39;: mud, &#39;ietf-access-control-list:acls&#39;: {&#39;acl&#39;: [acl]}}</code></pre>
+</details>
+</dd>
+<dt id="muddy.maker.make_my_controller_match"><code class="name flex">
+<span>def <span class="ident">make_my_controller_match</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Function to generate an ACL match for access to controllers specific to this device </p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>dict</code></strong></dt>
+<dd>A dictionary representing the my-controller match.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def make_my_controller_match():
+    &#34;&#34;&#34;Function to generate an ACL match for access to controllers specific to this device 
+
+    Returns:
+        dict: A dictionary representing the my-controller match.
+
+    &#34;&#34;&#34;
+    return {&#39;my-controller&#39;: []}</code></pre>
+</details>
+</dd>
+<dt id="muddy.maker.make_policy"><code class="name flex">
+<span>def <span class="ident">make_policy</span></span>(<span>direction_initiated, acl_names)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def make_policy(direction_initiated, acl_names):
+    policy_type_prefix = get_policy_type_prefix_string(direction_initiated)
+    return {
+        f&#34;{policy_type_prefix}-device-policy&#34;: {&#39;access-lists&#39;: {&#39;access-list&#39;: acl_names}}
+    }</code></pre>
+</details>
+</dd>
+<dt id="muddy.maker.make_port_range"><code class="name flex">
+<span>def <span class="ident">make_port_range</span></span>(<span>dir_init, source_port, destination_port)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Function to generate the port ranges for an ACL</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>dir_init</code></strong> :&ensp;<code>Direction</code></dt>
+<dd>The direction for which the TCP connection was initiated.
+<code>Direction.TO_DEVICE</code> for Remote, <code>Direction.FROM_DEVICE</code> for Thing,
+None for Either.</dd>
+<dt><strong><code>source_port</code></strong> :&ensp;<code>int</code></dt>
+<dd>The source port for the range. None for ANY.</dd>
+<dt><strong><code>destination_port</code></strong> :&ensp;<code>int</code></dt>
+<dd>The destination port for the range. None for ANY.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>dict</code></strong></dt>
+<dd>A dictionary representing the port range container.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def make_port_range(dir_init: Direction, source_port: int, destination_port: int):
+    &#34;&#34;&#34;Function to generate the port ranges for an ACL
+
+    Args:
+        dir_init (Direction): The direction for which the TCP connection was initiated. 
+                              `Direction.TO_DEVICE` for Remote, `Direction.FROM_DEVICE` for Thing,
+                              None for Either.
+        source_port (int): The source port for the range. None for ANY.
+        destination_port (int): The destination port for the range. None for ANY.
+
+    Returns:
+        dict: A dictionary representing the port range container.
+
+    &#34;&#34;&#34;
+    port_range = {}
+
+    if dir_init is not None and dir_init is Direction.TO_DEVICE:
+        port_range[&#39;ietf-mud:direction-initiated&#39;] = &#34;to-device&#34;
+    if dir_init is not None and dir_init is Direction.FROM_DEVICE:
+        port_range[&#39;ietf-mud:direction-initiated&#39;] = &#34;from-device&#34;
+
+    if source_port is not None:
+        port_range[&#39;source-port&#39;] = {
+            &#39;operator&#39;: &#39;eq&#39;,
+            &#39;port&#39;: int(source_port)
+        }
+    if destination_port is not None:
+        port_range[&#39;destination-port&#39;] = {
+            &#39;operator&#39;: &#39;eq&#39;,
+            &#39;port&#39;: int(destination_port)
+        }
+
+    return port_range</code></pre>
+</details>
+</dd>
+<dt id="muddy.maker.make_same_manufacturer_match"><code class="name flex">
+<span>def <span class="ident">make_same_manufacturer_match</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Function to generate an ACL match for access to devices to/from the same
+manufacturer based on the domain name in the MUD URL.
+</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>dict</code></strong></dt>
+<dd>A dictionary representing the same-manufacturer match.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def make_same_manufacturer_match():
+    &#34;&#34;&#34;Function to generate an ACL match for access to devices to/from the same 
+       manufacturer based on the domain name in the MUD URL.    
+    
+    Returns:
+        dict: A dictionary representing the same-manufacturer match.
+
+    &#34;&#34;&#34;
+    return {&#39;same-manufacturer&#39;: []}</code></pre>
+</details>
+</dd>
+<dt id="muddy.maker.make_sub_ace"><code class="name flex">
+<span>def <span class="ident">make_sub_ace</span></span>(<span>sub_ace_name, protocol_direction, target_url, protocol, local_port, remote_port, match_type, direction_initiated, ip_version)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def make_sub_ace(sub_ace_name, protocol_direction, target_url, protocol, local_port, remote_port, match_type,
+                 direction_initiated, ip_version):
+    if len(target_url) &gt; 140:
+        raise InputException(&#39;target url is too long: {}&#39; % target_url)
+    match = {}
+
+    ip_version = get_ipversion_string(ip_version)
+    source_port = None
+    destination_port = None
+    cloud_ipv4_entry = None
+
+    if match_type is MatchType.IS_CLOUD:
+        cloud_ipv4_entry = make_acldns_match(target_url, protocol_direction)
+    elif match_type is MatchType.IS_CONTROLLER:
+        match[&#39;ietf-mud:mud&#39;] = make_controller_match(target_url)
+    elif match_type is MatchType.IS_MY_CONTROLLER:
+        match[&#39;ietf-mud:mud&#39;] = make_my_controller_match()
+    elif match_type is MatchType.IS_MFG:
+        match[&#39;ietf-mud:mud&#39;] = make_manufacturer_match(target_url)
+    elif match_type is MatchType.IS_MYMFG:
+        match[&#39;ietf-mud:mud&#39;] = make_same_manufacturer_match()
+
+    if match[&#39;ietf-mud:mud&#39;] is None and cloud_ipv4_entry is None:
+        raise InputException(f&#34;match_type is not valid: {match_type}&#34;)
+
+    if protocol is Protocol.ANY:
+        if cloud_ipv4_entry:
+            match[ip_version] = cloud_ipv4_entry
+    else:
+        if protocol_direction is Direction.TO_DEVICE:
+            source_port = remote_port
+            destination_port = local_port
+        elif protocol_direction is Direction.FROM_DEVICE:
+            source_port = local_port
+            destination_port = remote_port
+        if protocol is Protocol.TCP:
+            match[ip_version] = {&#39;protocol&#39;: 6}
+            match[&#39;tcp&#39;] = make_port_range(direction_initiated, source_port, destination_port)
+        elif protocol is Protocol.UDP:
+            match[ip_version] = {&#39;protocol&#39;: 17}
+        else:
+            raise InputException(f&#39;protocol is not valid: {protocol}&#39;)
+        if cloud_ipv4_entry:
+            match[ip_version].update(cloud_ipv4_entry)
+    return {&#39;name&#39;: sub_ace_name, &#39;matches&#39;: match}</code></pre>
+</details>
+</dd>
+<dt id="muddy.maker.make_support_info"><code class="name flex">
+<span>def <span class="ident">make_support_info</span></span>(<span>mud_version, mud_url, cache_validity, is_supported, system_info, documentation, masa_server=None, mfg_name=None, last_update=None, model_name=None, firmware_rev=None, software_rev=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Function to generate the MUD Model Definitions for the Root "mud" Container,
+minus to-device-policy and from-device-policy Containers.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>mud_version</code></strong> :&ensp;<code>int</code></dt>
+<dd>This node specifies the integer version of the MUD specification.</dd>
+<dt><strong><code>mud_url</code></strong> :&ensp;<code>str</code></dt>
+<dd>This is the MUD URL associated with the entry found in a MUD file.</dd>
+<dt><strong><code>cache_validity</code></strong> :&ensp;<code>int</code></dt>
+<dd>The information retrieved from the MUD server is valid for these
+many hours, after which it should be refreshed.</dd>
+<dt><strong><code>is_supported</code></strong> :&ensp;<code>bool</code></dt>
+<dd>This boolean indicates whether or not the Thing is currently supported
+by the manufacturer.</dd>
+<dt><strong><code>system_info</code></strong> :&ensp;<code>str</code></dt>
+<dd>A UTF-8 description of this Thing.
+This should be a brief description that may be
+displayed to the user to determine whether to allow the Thing on the network.</dd>
+<dt><strong><code>documentation</code></strong> :&ensp;<code>str</code></dt>
+<dd>This URI consists of a URL that points to documentation relating to
+the device and the MUD file.</dd>
+<dt><strong><code>masa_server</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>MASA server</dd>
+<dt><strong><code>mfg_name</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Manufacturer name, as described in the ietf-hardware YANG module.</dd>
+<dt><strong><code>last_update</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>This is intended to be when the current MUD file
+was generated.
+MUD managers SHOULD NOT check
+for updates between this time plus cache validity.</dd>
+<dt><strong><code>model_name</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Model name, as described in theietf-hardware YANG module.</dd>
+<dt><strong><code>firmware_rev</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>firmware-rev, as described in the ietf-hardware YANG module.
+Note that this field MUST NOT be included when the device can be
+updated but the MUD URL cannot.</dd>
+<dt><strong><code>software_rev</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>software-rev, as described in the ietf-hardware YANG module.
+Note that this field MUST NOT be included when the device can be
+updated but the MUD URL cannot.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>dict</code></strong></dt>
+<dd>A dictionary representing the Root "mud" Container, minus to-device-policy and from-device-policy
+Containers.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def make_support_info(mud_version: int, mud_url: str, cache_validity: int,
+                      is_supported: bool, system_info: str, documentation: str,
+                      masa_server: str = None, mfg_name: str = None,
+                      last_update: str = None, model_name: str = None,
+                      firmware_rev: str = None, software_rev: str = None):
+    &#34;&#34;&#34;Function to generate the MUD Model Definitions for the Root &#34;mud&#34; Container,
+       minus to-device-policy and from-device-policy Containers.
+
+    Args:
+        mud_version (int): This node specifies the integer version of the MUD specification.
+        mud_url (str): This is the MUD URL associated with the entry found in a MUD file.
+        cache_validity (int): The information retrieved from the MUD server is valid for these
+                              many hours, after which it should be refreshed.
+        is_supported (bool): This boolean indicates whether or not the Thing is currently supported
+                             by the manufacturer.
+        system_info (str): A UTF-8 description of this Thing.  This should be a brief description that may be
+                           displayed to the user to determine whether to allow the Thing on the network.
+        documentation (str): This URI consists of a URL that points to documentation relating to
+                             the device and the MUD file.
+        masa_server (str, optional): MASA server
+        mfg_name (str, optional): Manufacturer name, as described in the ietf-hardware YANG module.
+        last_update (str, optional): This is intended to be when the current MUD file
+                                            was generated.  MUD managers SHOULD NOT check
+                                            for updates between this time plus cache validity.
+        model_name (str, optional): Model name, as described in theietf-hardware YANG module.
+        firmware_rev (str, optional): firmware-rev, as described in the ietf-hardware YANG module. 
+                                             Note that this field MUST NOT be included when the device can be
+                                             updated but the MUD URL cannot.
+        software_rev (str, optional): software-rev, as described in the ietf-hardware YANG module. 
+                                             Note that this field MUST NOT be included when the device can be
+                                             updated but the MUD URL cannot.
+
+    Returns:
+        dict: A dictionary representing the Root &#34;mud&#34; Container, minus to-device-policy and from-device-policy 
+              Containers.
+
+    &#34;&#34;&#34;
+    support_info = {}
+
+    if mfg_name is not None:
+        support_info[&#39;mfg-name&#39;] = mfg_name
+    if model_name is not None:
+        support_info[&#39;model-name&#39;] = model_name
+    if masa_server is not None:
+        support_info[&#34;masa-server&#34;] = masa_server
+    if firmware_rev is not None:
+        support_info[&#34;firmware-rev&#34;] = firmware_rev
+    if software_rev is not None:
+        support_info[&#34;software-rev&#34;] = software_rev
+
+    support_info[&#39;mud-version&#39;] = int(mud_version)
+    support_info[&#39;mud-url&#39;] = mud_url
+    support_info[&#39;last-update&#39;] = last_update if last_update is not None else datetime.now().strftime(
+        &#39;%Y-%m-%dT%H:%M:%S%z&#39;)
+    support_info[&#39;cache-validity&#39;] = int(cache_validity)
+    support_info[&#39;is-supported&#39;] = is_supported
+    support_info[&#39;systeminfo&#39;] = system_info
+    support_info[&#39;documentation&#39;] = documentation
+
+    return support_info</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="muddy" href="index.html">muddy</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="muddy.maker.make_ace" href="#muddy.maker.make_ace">make_ace</a></code></li>
+<li><code><a title="muddy.maker.make_acl" href="#muddy.maker.make_acl">make_acl</a></code></li>
+<li><code><a title="muddy.maker.make_acl_name" href="#muddy.maker.make_acl_name">make_acl_name</a></code></li>
+<li><code><a title="muddy.maker.make_acl_names" href="#muddy.maker.make_acl_names">make_acl_names</a></code></li>
+<li><code><a title="muddy.maker.make_acldns_match" href="#muddy.maker.make_acldns_match">make_acldns_match</a></code></li>
+<li><code><a title="muddy.maker.make_acls" href="#muddy.maker.make_acls">make_acls</a></code></li>
+<li><code><a title="muddy.maker.make_controller_match" href="#muddy.maker.make_controller_match">make_controller_match</a></code></li>
+<li><code><a title="muddy.maker.make_manufacturer_match" href="#muddy.maker.make_manufacturer_match">make_manufacturer_match</a></code></li>
+<li><code><a title="muddy.maker.make_mud" href="#muddy.maker.make_mud">make_mud</a></code></li>
+<li><code><a title="muddy.maker.make_my_controller_match" href="#muddy.maker.make_my_controller_match">make_my_controller_match</a></code></li>
+<li><code><a title="muddy.maker.make_policy" href="#muddy.maker.make_policy">make_policy</a></code></li>
+<li><code><a title="muddy.maker.make_port_range" href="#muddy.maker.make_port_range">make_port_range</a></code></li>
+<li><code><a title="muddy.maker.make_same_manufacturer_match" href="#muddy.maker.make_same_manufacturer_match">make_same_manufacturer_match</a></code></li>
+<li><code><a title="muddy.maker.make_sub_ace" href="#muddy.maker.make_sub_ace">make_sub_ace</a></code></li>
+<li><code><a title="muddy.maker.make_support_info" href="#muddy.maker.make_support_info">make_support_info</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.3</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>
