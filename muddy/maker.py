@@ -74,7 +74,7 @@ def make_support_info(mud_version: int, mud_url: str, cache_validity: int,
     return support_info
 
 
-def make_port_range(dir_init, source_port, destination_port):
+def make_port_range(dir_init: Direction, source_port: int, destination_port: int):
     """Function to generate the port ranges for an ACL
 
     Args:
@@ -109,7 +109,7 @@ def make_port_range(dir_init, source_port, destination_port):
     return port_range
 
 
-def make_acldns_match(domain, direction):
+def make_acldns_match(domain: str, direction: Direction):
     """Function to generate an ACL match for a domain.
 
     Args:
@@ -137,18 +137,43 @@ def make_acldns_match(domain, direction):
     return acldns_match
 
 
-def make_controller_match(url):
-    if not (re.match(HTTP_URL_REGEX, url) or re.match(URN_URL_REGEX, url)):
-        raise InputException('Not a valid URL: {}' % url)
+def make_controller_match(uri: str):
+    """Function to generate an ACL match for classes of devices that are known to be controllers
 
-    return {'controller': url}
+    Args:
+        url (str): URI for the device class
+
+    Returns:
+        dict: A dictionary representing the controller match.
+
+    """
+    if not (re.match(HTTP_URL_REGEX, uri) or re.match(URN_URL_REGEX, uri)):
+        raise InputException('Not a valid URI: {}' % uri)
+
+    return {'controller': uri}
 
 
 def make_my_controller_match():
+    """Function to generate an ACL match for access to controllers specific to this device 
+
+    Returns:
+        dict: A dictionary representing the my-controller match.
+
+    """
     return {'my-controller': []}
 
 
-def make_manufacturer_match(domain):
+def make_manufacturer_match(domain: str):
+    """Function to generate an ACL match for access to named manufacturers of devices that 
+       are identified by the domain names in their MUD URLs
+
+    Args:
+        domain (str): domain name for manufacturer
+    
+    Returns:
+        dict: A dictionary representing the manufacturer match.
+
+    """
     if not re.match(DOMAIN_NAME_REGEX, domain):
         raise InputException("Not a domain name: {domain}")
 
@@ -156,6 +181,13 @@ def make_manufacturer_match(domain):
 
 
 def make_same_manufacturer_match():
+    """Function to generate an ACL match for access to devices to/from the same 
+       manufacturer based on the domain name in the MUD URL.	
+    
+    Returns:
+        dict: A dictionary representing the same-manufacturer match.
+
+    """
     return {'same-manufacturer': []}
 
 
