@@ -328,7 +328,7 @@ def make_mud(mud_version, mud_url, cache_validity, is_supported, system_info, do
 
 
 @make_mud.add
-def make_mud(support_info, directions_initiated, ip_version, target_url, protocol, local_ports, remote_ports,
+def make_mud(support_info, directions_initiated, ip_version:IPVersion, target_url, protocol, local_ports, remote_ports,
              match_type):
     acl = []
     policies = {}

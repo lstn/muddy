@@ -1,2 +1,65 @@
 # muddy
 Muddy is a python package and CLI tool for generating MUD files.
+
+## Usage
+To make a MUD file object run:
+```python
+from muddy import maker
+from muddy import models
+
+mud = maker.make_mud(1,'https://lighting.example.com/lightbulb2000', 48, True, 'The BMS Example Light Bulb', 
+'https://lighting.example.com/lightbulb2000/documentation', [models.Direction.TO_DEVICE,models.Direction.FROM_DEVICE],
+ models.IPVersion.IPV4, 'test.example.com', models.Protocol.ANY, [88,443], [88,443], models.MatchType.IS_MYMFG)
+```
+or
+```python
+from muddy import maker
+from muddy import models
+
+support_info = maker.make_support_info(1,'https://lighting.example.com/lightbulb2000', 48, True,
+ 'The BMS Example Light Bulb', 'https://lighting.example.com/lightbulb2000/documentation')
+
+mud = maker.make_mud(support_info , [models.Direction.TO_DEVICE,models.Direction.FROM_DEVICE],
+ models.IPVersion.IPV4, 'test.example.com', models.Protocol.ANY, [88,443], [88,443], models.MatchType.IS_MYMFG)
+```
+or
+```python
+from muddy import maker
+from muddy import models
+import random
+
+mud_name = f'mud-{random.randint(10000, 99999)}'
+acl = []
+policies = {}
+for direction_initiated in [models.Direction.TO_DEVICE,models.Direction.FROM_DEVICE]:
+    acl_names = maker.make_acl_names(mud_name, models.IPVersion.IPV4, direction_initiated)
+    policies.update(maker.make_policy(direction_initiated, acl_names))
+    acl.append(
+        maker.make_acls([models.IPVersion.IPV4], 'test.example.com', models.Protocol.ANY, [88,443], [88,443], models.MatchType.IS_MYMFG, direction_initiated,
+                  acl_names))
+
+mud = maker.make_mud(policies, acl, 1,'https://lighting.example.com/lightbulb2000', 48, True, 'The BMS Example Light Bulb', 
+'https://lighting.example.com/lightbulb2000/documentation')
+```
+or
+```python
+from muddy import maker
+from muddy import models
+import random
+
+support_info = maker.make_support_info(1,'https://lighting.example.com/lightbulb2000', 48, True,
+ 'The BMS Example Light Bulb', 'https://lighting.example.com/lightbulb2000/documentation')
+
+
+mud_name = f'mud-{random.randint(10000, 99999)}'
+acl = []
+policies = {}
+for direction_initiated in [models.Direction.TO_DEVICE,models.Direction.FROM_DEVICE]:
+    acl_names = maker.make_acl_names(mud_name, models.IPVersion.IPV4, direction_initiated)
+    policies.update(maker.make_policy(direction_initiated, acl_names))
+    acl.append(
+        maker.make_acls([models.IPVersion.IPV4], 'test.example.com', models.Protocol.ANY, [88,443], [88,443], models.MatchType.IS_MYMFG, direction_initiated,
+                  acl_names))
+
+mud = maker.make_mud(support_info, policies, acl)
+```
