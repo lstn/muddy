@@ -275,7 +275,7 @@ def make_acls(ip_version, target_url, protocol, local_ports, remote_ports, match
         raise InputException('acl_names and mud_name can\'t both by None at the same time')
     elif acl_names is None:
         acl_names = make_acl_names(mud_name, ip_version, direction_initiated)
-    if ip_version is [IPVersion.BOTH]:
+    if ip_version == [IPVersion.BOTH]:
         ip_version = [IPVersion.IPV4, IPVersion.IPV6]
     for i in range(len(acl_names)):
         acls.update(make_acl(ip_version[i], target_url, protocol, local_ports, remote_ports, match_type,
