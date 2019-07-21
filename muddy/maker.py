@@ -1,8 +1,9 @@
-from pprint import pprint
+import random
+import re
 from datetime import datetime
-from overload import overload
-import re, random
+import json
 
+from overload import overload
 
 from muddy.constants import DOMAIN_NAME_REGEX, HTTP_URL_REGEX, URN_URL_REGEX
 from muddy.exceptions import InputException
@@ -138,7 +139,7 @@ def make_acldns_match(domain: str, direction: Direction):
     return acldns_match
 
 
-def make_controller_match(uri: str):
+def make_controller_match(url: str):
     """Function to generate an ACL match for classes of devices that are known to be controllers
 
     Args:
@@ -148,10 +149,10 @@ def make_controller_match(uri: str):
         dict: A dictionary representing the controller match.
 
     """
-    if not (re.match(HTTP_URL_REGEX, uri) or re.match(URN_URL_REGEX, uri)):
-        raise InputException('Not a valid URI: {}' % uri)
+    if not (re.match(HTTP_URL_REGEX, url) or re.match(URN_URL_REGEX, url)):
+        raise InputException('Not a valid URI: {}' % url)
 
-    return {'controller': uri}
+    return {'controller': url}
 
 
 def make_my_controller_match():
@@ -263,21 +264,21 @@ def make_acl(ip_version, target_url, protocol, local_ports, remote_ports, match_
     elif acl_name is None:
         acl_name = make_acl_name(mud_name, ip_version, direction_initiated)
     return {'name': acl_name, 'type': acl_type_prefix,
-            'aces': {'ace': [make_ace(target_url, protocol, local_ports, remote_ports, match_type,
-                                      direction_initiated, ip_version)]}}
+            'aces': {'ace': make_ace(target_url, protocol, local_ports, remote_ports, match_type,
+                                     direction_initiated, ip_version)}}
 
 
 def make_acls(ip_version, target_url, protocol, local_ports, remote_ports, match_type,
               direction_initiated, acl_names=None, mud_name=None):
-    acls = []
+    acls = {}
     if acl_names is None and mud_name is None:
         raise InputException('acl_names and mud_name can\'t both by None at the same time')
     elif acl_names is None:
         acl_names = make_acl_names(mud_name, ip_version, direction_initiated)
-    if ip_version is IPVersion.BOTH:
+    if ip_version is [IPVersion.BOTH]:
         ip_version = [IPVersion.IPV4, IPVersion.IPV6]
     for i in range(len(acl_names)):
-        acls.append(make_acl(ip_version[i], target_url, protocol, local_ports, remote_ports, match_type,
+        acls.update(make_acl(ip_version[i], target_url, protocol, local_ports, remote_ports, match_type,
                              direction_initiated, acl_names[i]))
     return acls
 
@@ -294,6 +295,8 @@ def make_acl_names(mud_name, ip_version, direction_initiated):
     if ip_version is IPVersion.BOTH:
         acl_names.append(make_acl_name(mud_name, IPVersion.IPV4, direction_initiated))
         acl_names.append(make_acl_name(mud_name, IPVersion.IPV6, direction_initiated))
+    else:
+        acl_names.append(make_acl_name(mud_name, ip_version, direction_initiated))
     return acl_names
 
 
@@ -315,29 +318,29 @@ def make_mud(mud_version, mud_url, cache_validity, is_supported, system_info, do
         acl_names = make_acl_names(mud_name, ip_version, direction_initiated)
         policies.update(make_policy(direction_initiated, acl_names))
         acl.append(
-            make_acls(ip_version, target_url, protocol, local_ports, remote_ports, match_type, direction_initiated,
+            make_acls([ip_version], target_url, protocol, local_ports, remote_ports, match_type, direction_initiated,
                       acl_names))
     mud = make_support_info(mud_version, mud_url, cache_validity,
                             is_supported, system_info, documentation, masa_server, mfg_name, last_update,
                             model_name)
     mud.update(policies)
-    return {'ietf-mud:mud': mud, 'ietf-access-control-list:acls': {'acl': [acl]}}
+    return {'ietf-mud:mud': mud, 'ietf-access-control-list:acls': {'acl': acl}}
 
 
 @make_mud.add
-def make_mud(mud_name, support_info, directions_initiated, ip_version, target_url, protocol, local_ports, remote_ports,
+def make_mud(support_info, directions_initiated, ip_version, target_url, protocol, local_ports, remote_ports,
              match_type):
     acl = []
     policies = {}
+    mud_name = f'mud-{random.randint(10000, 99999)}'
     for direction_initiated in directions_initiated:
         acl_names = make_acl_names(mud_name, ip_version, direction_initiated)
         policies.update(make_policy(direction_initiated, acl_names))
-        acl.append(
-            make_acls(ip_version, target_url, protocol, local_ports, remote_ports, match_type, direction_initiated,
-                      acl_names))
+        acl += make_acls(ip_version, target_url, protocol, local_ports, remote_ports, match_type, direction_initiated,
+                         acl_names)
     mud = support_info
     mud.update(policies)
-    return {'ietf-mud:mud': mud, 'ietf-access-control-list:acls': {'acl': [acl]}}
+    return {'ietf-mud:mud': mud, 'ietf-access-control-list:acls': {'acl': acl}}
 
 
 @make_mud.add
