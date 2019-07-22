@@ -193,8 +193,8 @@ def make_same_manufacturer_match():
     return {'same-manufacturer': []}
 
 
-def make_sub_ace(sub_ace_name, protocol_direction, target_url, protocol, local_port, remote_port, match_type,
-                 direction_initiated, ip_version):
+def make_sub_ace(sub_ace_name, protocol_direction, target_url, protocol, match_type,
+                 direction_initiated, ip_version, local_port=None, remote_port=None):
     if len(target_url) > 140:
         raise InputException('target url is too long: {}' % target_url)
     match = {}
@@ -215,17 +215,17 @@ def make_sub_ace(sub_ace_name, protocol_direction, target_url, protocol, local_p
     elif match_type is MatchType.IS_MYMFG:
         match['ietf-mud:mud'] = make_same_manufacturer_match()
 
-    if match['ietf-mud:mud'] is None and cloud_ipv4_entry is None:
+    if match.get('ietf-mud:mud') is None and cloud_ipv4_entry is None:
         raise InputException(f"match_type is not valid: {match_type}")
 
     if protocol is Protocol.ANY:
         if cloud_ipv4_entry:
             match[ip_version] = cloud_ipv4_entry
     else:
-        if protocol_direction is Direction.TO_DEVICE:
+        if protocol_direction is Direction.FROM_DEVICE:
             source_port = remote_port
             destination_port = local_port
-        elif protocol_direction is Direction.FROM_DEVICE:
+        elif protocol_direction is Direction.TO_DEVICE:
             source_port = local_port
             destination_port = remote_port
         if protocol is Protocol.TCP:
@@ -240,36 +240,42 @@ def make_sub_ace(sub_ace_name, protocol_direction, target_url, protocol, local_p
     return {'name': sub_ace_name, 'matches': match}
 
 
-def make_ace(target_url, protocol, local_ports, remote_ports, match_type,
-             direction_initiated, ip_version):
+def make_ace(protocol_direction, target_url, protocol, match_types, direction_initiated, ip_version, local_ports=None,
+             remote_ports=None):
     ace = []
-    ace_name = get_ace_name(match_type)
-    protocol_directions = [Direction.TO_DEVICE, Direction.FROM_DEVICE]
-    for i in range(len(protocol)) if not isinstance(protocol, Protocol) else range(1):
-        sub_ace_name = get_sub_ace_name(ace_name, protocol_directions[i])
-        ace.append(
-            make_sub_ace(
-                sub_ace_name.format(i), protocol_directions[i], target_url, protocol, local_ports[i],
-                remote_ports[i], match_type, direction_initiated, ip_version
-            )
-        )
+    number_local_ports = len(local_ports) if type(local_ports) == list else 1
+    number_remote_ports = len(remote_ports) if type(remote_ports) == list else 1
+    for i in range(len(match_types)) if not isinstance(match_types, MatchType) else range(1):
+        for l in range(number_local_ports):
+            for r in range(number_remote_ports):
+                ace.append(
+                    make_sub_ace(
+                        get_sub_ace_name(get_ace_name(match_types[i]), protocol_direction, i + l + r),
+                        protocol_direction,
+                        target_url,
+                        protocol, match_types[i], direction_initiated, ip_version,
+                        local_ports[l] if local_ports is not None else None,
+                        remote_ports[r] if remote_ports is not None else None
+                    )
+                )
     return ace
 
 
-def make_acl(ip_version, target_url, protocol, local_ports, remote_ports, match_type,
-             direction_initiated, acl_name=None, mud_name=None):
+def make_acl(protocol_direction, ip_version, target_url, protocol, match_types,
+             direction_initiated, local_ports=None, remote_ports=None, acl_name=None, mud_name=None):
     acl_type_prefix = get_ipversion_string(ip_version)
     if acl_name is None and mud_name is None:
         raise InputException('acl_name and mud_name can\'t both by None at the same time')
     elif acl_name is None:
         acl_name = make_acl_name(mud_name, ip_version, direction_initiated)
     return {'name': acl_name, 'type': acl_type_prefix,
-            'aces': {'ace': make_ace(target_url, protocol, local_ports, remote_ports, match_type,
-                                     direction_initiated, ip_version)}}
+            'aces': {
+                'ace': make_ace(protocol_direction, target_url, protocol, match_types, direction_initiated, ip_version,
+                                local_ports, remote_ports)}}
 
 
-def make_acls(ip_version, target_url, protocol, local_ports, remote_ports, match_type,
-              direction_initiated, acl_names=None, mud_name=None):
+def make_acls(ip_version, target_url, protocol, match_types, direction_initiated, local_ports=None, remote_ports=None,
+              acl_names=None, mud_name=None):
     acls = {}
     if acl_names is None and mud_name is None:
         raise InputException('acl_names and mud_name can\'t both by None at the same time')
@@ -278,8 +284,10 @@ def make_acls(ip_version, target_url, protocol, local_ports, remote_ports, match
     if ip_version == [IPVersion.BOTH]:
         ip_version = [IPVersion.IPV4, IPVersion.IPV6]
     for i in range(len(acl_names)):
-        acls.update(make_acl(ip_version[i], target_url, protocol, local_ports, remote_ports, match_type,
-                             direction_initiated, acl_names[i]))
+        for protocol_direction in [Direction.TO_DEVICE, Direction.FROM_DEVICE]:
+            acls.update(
+                make_acl(protocol_direction, ip_version[i], target_url, protocol, match_types, direction_initiated,
+                         local_ports, remote_ports, acl_names[i]))
     return acls
 
 
@@ -302,15 +310,16 @@ def make_acl_names(mud_name, ip_version, direction_initiated):
 
 def make_policy(direction_initiated, acl_names):
     policy_type_prefix = get_policy_type_prefix_string(direction_initiated)
+    access_list = [{'name': name} for name in acl_names]
     return {
-        f"{policy_type_prefix}-device-policy": {'access-lists': {'access-list': acl_names}}
+        f"{policy_type_prefix}-device-policy": {'access-lists': {'access-list': access_list}}
     }
 
 
 @overload
 def make_mud(mud_version, mud_url, cache_validity, is_supported, system_info, documentation, directions_initiated,
-             ip_version, target_url, protocol, local_ports, remote_ports, match_type, masa_server=None, mfg_name=None,
-             last_update=None, model_name=None):
+             ip_version, target_url, protocol, match_types, local_ports=None, remote_ports=None, masa_server=None,
+             mfg_name=None, last_update=None, model_name=None):
     mud_name = f'mud-{random.randint(10000, 99999)}'
     acl = []
     policies = {}
@@ -318,7 +327,7 @@ def make_mud(mud_version, mud_url, cache_validity, is_supported, system_info, do
         acl_names = make_acl_names(mud_name, ip_version, direction_initiated)
         policies.update(make_policy(direction_initiated, acl_names))
         acl.append(
-            make_acls([ip_version], target_url, protocol, local_ports, remote_ports, match_type, direction_initiated,
+            make_acls([ip_version], target_url, protocol, match_types, direction_initiated, local_ports, remote_ports,
                       acl_names))
     mud = make_support_info(mud_version, mud_url, cache_validity,
                             is_supported, system_info, documentation, masa_server, mfg_name, last_update,

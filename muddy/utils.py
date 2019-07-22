@@ -53,11 +53,11 @@ def get_ace_name(match_type):
     raise InputException(f'match_type is not valid: {match_type}')
 
 
-def get_sub_ace_name(ace_name, direction):
+def get_sub_ace_name(ace_name, direction, sub_ace_number):
     if direction is Direction.TO_DEVICE:
-        return f"{ace_name}{'{}'}-todev"
+        return f"{ace_name}{sub_ace_number}-todev"
     if direction is Direction.FROM_DEVICE:
-        return f"{ace_name}{'{}'}-frdev"
+        return f"{ace_name}{sub_ace_number}-frdev"
     raise InputException(f'direction is not valid: {direction}')
 
 
