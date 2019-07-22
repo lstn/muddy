@@ -39,15 +39,15 @@ def make_support_info(mud_version: int, mud_url: str, cache_validity: int,
                                             was generated.  MUD managers SHOULD NOT check
                                             for updates between this time plus cache validity.
         model_name (str, optional): Model name, as described in theietf-hardware YANG module.
-        firmware_rev (str, optional): firmware-rev, as described in the ietf-hardware YANG module. 
+        firmware_rev (str, optional): firmware-rev, as described in the ietf-hardware YANG module.
                                              Note that this field MUST NOT be included when the device can be
                                              updated but the MUD URL cannot.
-        software_rev (str, optional): software-rev, as described in the ietf-hardware YANG module. 
+        software_rev (str, optional): software-rev, as described in the ietf-hardware YANG module.
                                              Note that this field MUST NOT be included when the device can be
                                              updated but the MUD URL cannot.
 
     Returns:
-        dict: A dictionary representing the Root "mud" Container, minus to-device-policy and from-device-policy 
+        dict: A dictionary representing the Root "mud" Container, minus to-device-policy and from-device-policy
               Containers.
 
     """
@@ -80,7 +80,7 @@ def make_port_range(dir_init: Direction, source_port: int, destination_port: int
     """Function to generate the port ranges for an ACL
 
     Args:
-        dir_init (Direction): The direction for which the TCP connection was initiated. 
+        dir_init (Direction): The direction for which the TCP connection was initiated.
                               `Direction.TO_DEVICE` for Remote, `Direction.FROM_DEVICE` for Thing,
                               None for Either.
         source_port (int): The source port for the range. None for ANY.
@@ -116,8 +116,8 @@ def make_acldns_match(domain: str, direction: Direction):
 
     Args:
         domain (str): The domain for this ACL
-        direction (Direction): The direction for which the TCP connection was initiated. 
-                               `Direction.TO_DEVICE` for source domain, `Direction.FROM_DEVICE` 
+        direction (Direction): The direction for which the TCP connection was initiated.
+                               `Direction.TO_DEVICE` for source domain, `Direction.FROM_DEVICE`
                                for destination domain.
 
     Returns:
@@ -156,7 +156,7 @@ def make_controller_match(url: str):
 
 
 def make_my_controller_match():
-    """Function to generate an ACL match for access to controllers specific to this device 
+    """Function to generate an ACL match for access to controllers specific to this device
 
     Returns:
         dict: A dictionary representing the my-controller match.
@@ -166,12 +166,12 @@ def make_my_controller_match():
 
 
 def make_manufacturer_match(domain: str):
-    """Function to generate an ACL match for access to named manufacturers of devices that 
+    """Function to generate an ACL match for access to named manufacturers of devices that
        are identified by the domain names in their MUD URLs
 
     Args:
         domain (str): domain name for manufacturer
-    
+
     Returns:
         dict: A dictionary representing the manufacturer match.
 
@@ -183,9 +183,9 @@ def make_manufacturer_match(domain: str):
 
 
 def make_same_manufacturer_match():
-    """Function to generate an ACL match for access to devices to/from the same 
-       manufacturer based on the domain name in the MUD URL.	
-    
+    """Function to generate an ACL match for access to devices to/from the same
+       manufacturer based on the domain name in the MUD URL.
+
     Returns:
         dict: A dictionary representing the same-manufacturer match.
 
@@ -237,7 +237,7 @@ def make_sub_ace(sub_ace_name, protocol_direction, target_url, protocol, match_t
             raise InputException(f'protocol is not valid: {protocol}')
         if cloud_ipv4_entry:
             match[ip_version].update(cloud_ipv4_entry)
-    return {'name': sub_ace_name, 'matches': match}
+    return {'name': sub_ace_name, 'matches': match, 'actions': {'forwarding': 'accept'}}
 
 
 def make_ace(protocol_direction, target_url, protocol, match_types, direction_initiated, ip_version, local_ports=None,
@@ -246,14 +246,15 @@ def make_ace(protocol_direction, target_url, protocol, match_types, direction_in
     number_local_ports = len(local_ports) if type(local_ports) == list else 1
     number_remote_ports = len(remote_ports) if type(remote_ports) == list else 1
     for i in range(len(match_types)) if not isinstance(match_types, MatchType) else range(1):
+        match_type = match_types[i] if not isinstance(match_types, MatchType) else match_types
         for l in range(number_local_ports):
             for r in range(number_remote_ports):
                 ace.append(
                     make_sub_ace(
-                        get_sub_ace_name(get_ace_name(match_types[i]), protocol_direction, i + l + r),
+                        get_sub_ace_name(get_ace_name(match_type), direction_initiated, i + l + r),
                         protocol_direction,
                         target_url,
-                        protocol, match_types[i], direction_initiated, ip_version,
+                        protocol, match_type, direction_initiated, ip_version,
                         local_ports[l] if local_ports is not None else None,
                         remote_ports[r] if remote_ports is not None else None
                     )
