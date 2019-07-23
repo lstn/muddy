@@ -368,3 +368,11 @@ def make_mud_4(support_info, policies, acls):
     mud = support_info
     mud.update(policies)
     return {'ietf-mud:mud': mud, 'ietf-access-control-list:acls': {'acl': acls}}
+
+
+if __name__ == "__main__":
+    print(json.dumps(make_mud(1, 'https://lighting.example.com/lightbulb2000', 48, True, 'The BMS Example Light Bulb',
+                              'https://lighting.example.com/lightbulb2000/documentation',
+                              [Direction.TO_DEVICE, Direction.FROM_DEVICE],
+                              IPVersion.IPV4, 'test.example.com', Protocol.ANY, MatchType.IS_MYMFG, [88, 443],
+                              [88, 443])))
