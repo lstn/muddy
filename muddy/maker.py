@@ -14,8 +14,8 @@ from muddy.utils import (
 )
 
 
-def make_support_info(mud_version: int, mud_url: str, cache_validity: int,
-                      is_supported: bool, system_info: str, documentation: str,
+def make_support_info(mud_version: int, mud_url: str, is_supported: bool, cache_validity: int = None,
+                      system_info: str = None, documentation: str = None,
                       masa_server: str = None, mfg_name: str = None,
                       last_update: str = None, model_name: str = None,
                       firmware_rev: str = None, software_rev: str = None):
@@ -25,13 +25,13 @@ def make_support_info(mud_version: int, mud_url: str, cache_validity: int,
     Args:
         mud_version (int): This node specifies the integer version of the MUD specification.
         mud_url (str): This is the MUD URL associated with the entry found in a MUD file.
-        cache_validity (int): The information retrieved from the MUD server is valid for these
+        cache_validity (int, optional): The information retrieved from the MUD server is valid for these
                               many hours, after which it should be refreshed.
         is_supported (bool): This boolean indicates whether or not the Thing is currently supported
                              by the manufacturer.
-        system_info (str): A UTF-8 description of this Thing.  This should be a brief description that may be
+        system_info (str, optional): A UTF-8 description of this Thing.  This should be a brief description that may be
                            displayed to the user to determine whether to allow the Thing on the network.
-        documentation (str): This URI consists of a URL that points to documentation relating to
+        documentation (str, optional): This URI consists of a URL that points to documentation relating to
                              the device and the MUD file.
         masa_server (str, optional): MASA server
         mfg_name (str, optional): Manufacturer name, as described in the ietf-hardware YANG module.
@@ -51,7 +51,7 @@ def make_support_info(mud_version: int, mud_url: str, cache_validity: int,
               Containers.
 
     """
-    support_info = {}
+    support_info = {'mud-version': mud_version, 'mud-url': mud_url, 'is-supported': is_supported}
 
     if mfg_name is not None:
         support_info['mfg-name'] = mfg_name
@@ -63,15 +63,15 @@ def make_support_info(mud_version: int, mud_url: str, cache_validity: int,
         support_info["firmware-rev"] = firmware_rev
     if software_rev is not None:
         support_info["software-rev"] = software_rev
+    if documentation is not None:
+        support_info['documentation'] = documentation
+    if system_info is not None:
+        support_info['systeminfo'] = system_info
+    if cache_validity is not None:
+        support_info['cache-validity'] = cache_validity
 
-    support_info['mud-version'] = int(mud_version)
-    support_info['mud-url'] = mud_url
     support_info['last-update'] = last_update if last_update is not None else datetime.now().strftime(
         '%Y-%m-%dT%H:%M:%S%z')
-    support_info['cache-validity'] = int(cache_validity)
-    support_info['is-supported'] = is_supported
-    support_info['systeminfo'] = system_info
-    support_info['documentation'] = documentation
 
     return support_info
 
@@ -368,11 +368,3 @@ def make_mud_4(support_info, policies, acls):
     mud = support_info
     mud.update(policies)
     return {'ietf-mud:mud': mud, 'ietf-access-control-list:acls': {'acl': acls}}
-
-
-if __name__ == "__main__":
-    print(json.dumps(make_mud(1, 'https://lighting.example.com/lightbulb2000', 48, True, 'The BMS Example Light Bulb',
-                              'https://lighting.example.com/lightbulb2000/documentation',
-                              [Direction.TO_DEVICE, Direction.FROM_DEVICE],
-                              IPVersion.IPV4, 'test.example.com', Protocol.ANY, MatchType.IS_MYMFG, [88, 443],
-                              [88, 443])))
